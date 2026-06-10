@@ -2,96 +2,132 @@
 <html lang="th">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drive Energy Script Tool</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="color.css">
-  <style>
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Outreach - Outreach Script Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="color.css">
 </head>
 
 <body>
-  <div class="app">
+    <div class="app-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand-header">
+                <div class="brand-logo">D</div>
+                <div class="brand-info">
+                    <h2>Outreach Hub</h2>
+                    <p>Drive Brand Co., Ltd.</p>
+                </div>
+            </div>
 
-    <nav class="nav">
-      <a href="sereniz.html" class="nav-item">
-        <span class="nav-dot"></span> Sereniz
-      </a>
-      <a href="contact.html" class="nav-item">
-        <span class="nav-dot"></span> Contact
-      </a>
-      <a href="gmail.html" class="nav-item">
-        <span class="nav-dot"></span> Gmail
-      </a>
-      <a href="tiktok.html" class="nav-item">
-        <span class="nav-dot"></span> TikTok
-      </a>
-      <a href="buyasset.html" class="nav-item">
-        <span class="nav-dot"></span> Buy Asset
-      </a>
-    </nav>
+            <div class="sidebar-scroll">
+                <!-- INPUT CONTROLS -->
+                <div class="control-group">
+                    <div class="control-title">
+                        <span class="control-title-bar"></span>
+                        ข้อมูลช่อง/ราคา
+                    </div>
+                    
+                    <div class="input-wrapper">
+                        <span class="input-icon">🎵</span>
+                        <input class="input-field" id="sidebarChannel" type="text" placeholder="ระบุชื่อช่อง TikTok" oninput="handleInputSync(this, 'channel')">
+                    </div>
 
-    <div class="header">
-      <div class="brand-tag">
-        <span class="brand-tag-icon">⚡</span>
-        Drive Energy
-      </div>
-      <h1>สคริปต์ติดต่อ Gmail</h1>
-      <div class="subtitle">
-        <span class="meta-pill">Drive Energy · Commission 10%</span>
-        <span class="meta-pill">TikTok Shop</span>
-      </div>
+                    <div class="input-wrapper" id="budgetInputContainer">
+                        <span class="input-icon">💰</span>
+                        <input class="input-field" id="sidebarBudget" type="text" placeholder="ระบุงบประมาณ (เช่น 500)" oninput="handleInputSync(this, 'budget')">
+                    </div>
+                </div>
+
+                <!-- CAMPAIGN / PAGE SELECTOR -->
+                <div class="control-group">
+                    <div class="control-title">
+                        <span class="control-title-bar"></span>
+                        รูปแบบเทมเพลต (Templates)
+                    </div>
+                    
+                    <div class="nav-list">
+                        <a href="sereniz.html" class="nav-btn" id="nav-sereniz">
+                            <span class="nav-btn-icon">💤</span>
+                            <span>Sereniz (10%)</span>
+                        </a>
+                        <a href="contact.html" class="nav-btn" id="nav-contact">
+                            <span class="nav-btn-icon">📞</span>
+                            <span>Contact (Affiliate)</span>
+                        </a>
+                        <a href="gmail.html" class="nav-btn" id="nav-gmail">
+                            <span class="nav-btn-icon">📧</span>
+                            <span>Gmail Outreach</span>
+                        </a>
+                        <a href="tiktok.html" class="nav-btn" id="nav-tiktok">
+                            <span class="nav-btn-icon">💬</span>
+                            <span>TikTok Quick DM</span>
+                        </a>
+                        <a href="buyasset.html" class="nav-btn" id="nav-buyasset">
+                            <span class="nav-btn-icon">🪙</span>
+                            <span>Buy Asset (ซื้อคลิป)</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- INSTRUCTION CARD -->
+                <div class="info-card">
+                    <strong>💡 คำแนะนำเพิ่มเติม:</strong><br>
+                    1. คุณสามารถพิมพ์แก้ไขสคริปต์บนหน้าเว็บได้ทันทีก่อนคัดลอก<br>
+                    2. เปลี่ยนเป็น <strong>แบบ Flow (ทีละขั้นตอน)</strong> ที่มุมขวาบน เพื่อคัดลอกข้อความทีละเสต็ปได้อย่างสะดวกรวดเร็วโดยไม่ต้องเลื่อนจอ
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE -->
+        <main class="workspace">
+            <header class="workspace-header">
+                <div class="campaign-info">
+                    <h1 id="activeCampaignTitle">
+                        📧 Gmail Outreach
+                    </h1>
+                </div>
+
+                <!-- Header Controllers (View Switch & Progress) -->
+                <div class="header-controls">
+                    <div class="view-toggle">
+                        <button class="view-btn" id="view-grid-btn" onclick="setViewMode('grid')">แบบตาราง</button>
+                        <button class="view-btn" id="view-flow-btn" onclick="setViewMode('flow')">ทีละขั้นตอน</button>
+                    </div>
+
+                    <div class="progress-indicator">
+                        <span class="progress-label" id="progressText">สถานะ: ส่งไปแล้ว 0/1 ขั้นตอน</span>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Right Side Scrollable Script Area -->
+            <div class="workspace-scroll">
+                <!-- Stepper (Hidden in Grid Mode, shown in Flow Mode) -->
+                <div class="flow-stepper" id="flowStepperContainer" style="display: none;">
+                    <!-- Generated by JS -->
+                </div>
+
+                <!-- Cards Container -->
+                <div class="cards-grid" id="scriptCardsContainer">
+                    <!-- Cards will be dynamically generated here by JS -->
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="input-card">
-      <div class="field-label"><span class="field-label-bar"></span> ชื่อช่อง TikTok</div>
-      <input class="channel-input" id="channelInput" type="text" placeholder="ระบุชื่อช่อง"
-        oninput="updateScript()">
-      <div class="input-hint">ชื่อช่องจะถูกแทรกในข้อความโดยอัตโนมัติ</div>
+    <!-- TOAST FLOATING NOTIFICATION -->
+    <div id="toast" class="toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-text" id="toastText">คัดลอกข้อความแล้ว</div>
     </div>
 
-    <div class="section-header">
-      <div class="section-num">01</div>
-      <div class="section-title">แนะนำตัว</div>
-      <div class="section-divider"></div>
-    </div>
-    <div class="script-card">
-      <div class="script-toolbar">
-        <span class="toolbar-filename">energy-intro.txt</span>
-        <button class="copy-btn" id="copyBtn1" onclick="copyMain()">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
-            <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"
-              stroke-linecap="round" />
-          </svg>
-          คัดลอก
-        </button>
-      </div>
-      <div id="scriptPreview" class="script-body"></div>
-    </div>
-
-  </div>
-
-  <div id="toast" class="toast">
-    <span class="toast-icon">✓</span>
-    คัดลอกข้อความแล้ว
-  </div>
-
-  <script src="script.js"></script>
+    <!-- CODE LOGIC -->
+    <script src="script.js"></script>
 </body>
 
 </html>
