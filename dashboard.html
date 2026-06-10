@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outreach Script Hub - Drive Brand</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b;
+            --sidebar-bg: #101014;
+            --surface: #16161c;
+            --surface-hover: #1e1e26;
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.12);
+            --text: #eeecea;
+            --text-muted: #9f9fa6;
+            --text-dark: #64646a;
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.15);
+            --green-border: rgba(16, 185, 129, 0.25);
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --accent-border: rgba(59, 130, 246, 0.25);
+            --glow-color: rgba(16, 185, 129, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Subtle glowing background effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            height: 300px;
+            background-image: radial-gradient(ellipse 60% 40% at 50% 0%, var(--glow-color) 0%, transparent 80%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* SIDEBAR (Control Panel) */
+        .sidebar {
+            width: 340px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .brand-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--green), #047857);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .brand-info h2 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-info p {
+            font-size: 11px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Input Controls */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-title-bar {
+            width: 4px;
+            height: 12px;
+            background-color: var(--green);
+            border-radius: 2px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px 12px 38px;
+            color: var(--text);
+            font-size: 14.5px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-glow);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: var(--text-dark);
+            pointer-events: none;
+        }
+
+        /* Navigation Links (Tabs) */
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-btn {
+            width: 100%;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text);
+        }
+
+        .nav-btn.active {
+            background-color: var(--surface);
+            color: var(--green);
+            border-color: var(--border);
+            box-shadow: inset 3px 0 0 var(--green);
+        }
+
+        .nav-btn-icon {
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* MAIN CONTENT WORKSPACE */
+        .workspace {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .workspace-header {
+            padding: 24px 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 5;
+        }
+
+        .campaign-info h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .campaign-badge {
+            font-size: 11px;
+            background-color: var(--green-glow);
+            border: 1px solid var(--green-border);
+            color: var(--green);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        /* Flow / Step Assist controls */
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 12px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .progress-bar-container {
+            width: 120px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--green);
+            transition: width 0.3s ease;
+        }
+
+        .workspace-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 40px 40px;
+        }
+
+        /* Grid of script cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* If there's only 1 step, take full width */
+        .cards-grid.single-card {
+            grid-template-columns: 1fr;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .script-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .script-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .script-card.completed {
+            border-color: var(--green-border);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.04);
+        }
+
+        .card-header {
+            padding: 14px 18px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            width: 22px;
+            height: 22px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .script-card.completed .step-number {
+            background-color: var(--green-glow);
+            border-color: var(--green-border);
+            color: var(--green);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Checkbox style indicator */
+        .sent-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-dark);
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .sent-checkbox {
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border: 1.5px solid var(--text-dark);
+            border-radius: 4px;
+            background-color: transparent;
+            cursor: pointer;
+            position: relative;
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .sent-checkbox:checked {
+            background-color: var(--green);
+            border-color: var(--green);
+        }
+
+        .sent-checkbox:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .sent-checkbox:checked + span {
+            color: var(--green);
+        }
+
+        /* Editable Text Block */
+        .card-body-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .card-body {
+            padding: 18px 20px;
+            font-size: 13.5px;
+            line-height: 1.8;
+            color: var(--text-muted);
+            white-space: pre-wrap;
+            min-height: 140px;
+            outline: none;
+            font-family: inherit;
+            cursor: text;
+            transition: color 0.2s;
+        }
+
+        .card-body:focus {
+            color: var(--text);
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Highlight classes */
+        .hl {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--green-border);
+            border-radius: 5px;
+            padding: 1px 5px;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .hl-budget {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-border);
+            border-radius: 5px;
+            padding: 1px 5px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .card-footer {
+            padding: 12px 18px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-copy {
+            background-color: var(--green-glow);
+            border: 1px solid var(--green-border);
+            color: var(--green);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background-color: rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-copy:active {
+            transform: translateY(0);
+        }
+
+        .btn-copy.copied {
+            background-color: var(--green);
+            color: white;
+            border-color: var(--green);
+        }
+
+        /* TOAST FLOATING ALERT */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: #1c1c24;
+            border: 1px solid var(--border-hover);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            background-color: var(--green-glow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--green);
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .toast-text {
+            font-size: 12.5px;
+            font-weight: 500;
+        }
+
+        /* CUSTOM SCROLLBARS */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Instructions Info */
+        .info-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 12px;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .info-card strong {
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand-header">
+            <div class="brand-logo">D</div>
+            <div class="brand-info">
+                <h2>Outreach Hub</h2>
+                <p>Drive Brand Co., Ltd.</p>
+            </div>
+        </div>
+
+        <div class="sidebar-scroll">
+            <!-- INPUT CONTROLS -->
+            <div class="control-group">
+                <div class="control-title">
+                    <span class="control-title-bar"></span>
+                    ข้อมูลช่อง/ราคา
+                </div>
+                
+                <div class="input-wrapper">
+                    <span class="input-icon">🎵</span>
+                    <input class="input-field" id="sidebarChannel" type="text" placeholder="ระบุชื่อช่อง TikTok" oninput="handleInputSync(this, 'channel')">
+                </div>
+
+                <div class="input-wrapper" id="budgetInputContainer">
+                    <span class="input-icon">💰</span>
+                    <input class="input-field" id="sidebarBudget" type="text" placeholder="ระบุงบประมาณ (เช่น 500)" oninput="handleInputSync(this, 'budget')">
+                </div>
+            </div>
+
+            <!-- CAMPAIGN / PAGE SELECTOR -->
+            <div class="control-group">
+                <div class="control-title">
+                    <span class="control-title-bar"></span>
+                    รูปแบบเทมเพลต (Templates)
+                </div>
+                
+                <div class="nav-list">
+                    <button class="nav-btn active" onclick="switchCampaign('sereniz')" id="nav-sereniz">
+                        <span class="nav-btn-icon">💤</span>
+                        <span>Sereniz (10%)</span>
+                    </button>
+                    <button class="nav-btn" onclick="switchCampaign('contact')" id="nav-contact">
+                        <span class="nav-btn-icon">📞</span>
+                        <span>Contact (Affiliate)</span>
+                    </button>
+                    <button class="nav-btn" onclick="switchCampaign('gmail')" id="nav-gmail">
+                        <span class="nav-btn-icon">📧</span>
+                        <span>Gmail Outreach</span>
+                    </button>
+                    <button class="nav-btn" onclick="switchCampaign('tiktok')" id="nav-tiktok">
+                        <span class="nav-btn-icon">💬</span>
+                        <span>TikTok Quick DM</span>
+                    </button>
+                    <button class="nav-btn" onclick="switchCampaign('buyasset')" id="nav-buyasset">
+                        <span class="nav-btn-icon">🪙</span>
+                        <span>Buy Asset (ซื้อคลิป)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- INSTRUCTION CARD -->
+            <div class="info-card">
+                <strong>💡 คำแนะนำเพิ่มเติม:</strong><br>
+                1. เมื่อคลิกเลือกรูปแบบเทมเพลต ไฟล์จะแสดงการกรอกชื่อช่องทันที<br>
+                2. <strong>คุณสามารถคลิกพิมพ์แก้ไขข้อความในกล่องขวาได้โดยตรง</strong> ก่อนกดคัดลอก<br>
+                3. มีระบบทำเครื่องหมายเพื่อป้องกันการส่งสับสน
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="workspace">
+        <header class="workspace-header">
+            <div class="campaign-info">
+                <h1 id="activeCampaignTitle">
+                    💤 Sereniz Outreach
+                </h1>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="progress-indicator">
+                <span class="progress-label" id="progressText">สถานะ: ส่งไปแล้ว 0/4 ขั้นตอน</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Right Side Scrollable Script Area -->
+        <div class="workspace-scroll">
+            <div class="cards-grid" id="scriptCardsContainer">
+                <!-- Cards will be dynamically generated here by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- TOAST FLOATING NOTIFICATION -->
+    <div id="toast" class="toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-text" id="toastText">คัดลอกข้อความแล้ว</div>
+    </div>
+
+    <!-- CODE LOGIC -->
+    <script>
+        // Database of templates
+        const templates = {
+            sereniz: {
+                title: "💤 Sereniz Outreach (Commission 10%)",
+                badge: "TikTok Shop",
+                showBudget: false,
+                steps: [
+                    {
+                        label: "01 แนะนำตัว (Introduction)",
+                        filename: "sereniz-intro.txt",
+                        template: (ch) => `สวัสดีครับ ขออนุญาตแนะนำตัวนะครับ โอ๊ค จากบริษัทไดร์ฟจำกัด\n\nโอ๊ค ติดตามมาจากช่อง (${ch}) ทาง Tiktok ครับ\n\nพอดีทางเราต้องการหาพันธมิตร tiktok ในการกระจายสินค้า เห็นทางช่องน่าสนใจทางเราจึงมีข้อเสนอเป็นส่วนแบ่งยอดขาย 10% 📌(สำหรับสินค้าที่ปักตะกร้า) ทางเราจะจัดส่งสินค้าไปให้ใช้ก่อน(ฟรี)\n\n📸 รีวิว สไตล์คุณ ได้เลยเต็มที่\n\n❌(งานนี้ไม่ มีBudget นะครับแต่จะเป็นส่วนแบ่งยอดขายผ่านระบบ tiktok shop ครับหรือคอมมิชชั่นจากยอดขาย )\n\nทางเราตามหา Influencer ที่สื่อมีความเกี่ยวข้องกับสินค้าของเราครับ\n\nคลิปตัวอย่างของอินฟูที่รีวิวสินค้าของทางเราครับ😊❤️\n\nhttps://vt.tiktok.com/ZSmLS9141/\nhttps://vt.tiktok.com/ZSmX2r8aa/\nhttps://vt.tiktok.com/ZSmX2SB3F/\n\n📌สินค้าของเราจะเป็นอาหารเสริมสนับสนุนการนอน Sereniz 💤 🛌นะครับ Link Tiktok โปรไฟล์ร้านของเราบน tiktok ชื่อ driveonline\n\nhttps://www.tiktok.com/@drive.officialth?_r=1&_t=ZS-96GW3KfWI8D\n\nสามารถเข้าดูสินค้าได้ที่หน้าโปรไฟล์เราก่อนตัดสินใจนะครับ หากสนใจหรือมีข้อมูลสอบถามเพิ่มเติมแจ้งกลับ โอ๊ค ได้เลยนะครับ 🥰🙇🏻`
+                    },
+                    {
+                        label: "02 รายละเอียดสินค้า (Product Details)",
+                        filename: "product-detail.txt",
+                        template: () => `ตัวนี้จะเป็น แม็กนีเซียมปรับสมดุลการนอนครับ เป็นสินค้าตัวใหม่ของทางแบรนด์ครับ🙏🏻🙇🏻`
+                    },
+                    {
+                        label: "03 ปิดท้าย (Closing)",
+                        filename: "closing.txt",
+                        template: () => `ผมแจ้งรายละเอียดครบแล้วนะครับ หากสนใจผมสามารถส่งคำเชิญสินค้าให้ได้เลยนะครับ หลังจากตัดสินใจแล้วหากสนใจหรือไม่สนใจ ผมรบกวนแจ้งผมกลับนิดนึงครับ ขอบคุณมากๆครับ🥰🙏🏻🙇🏻`
+                    },
+                    {
+                        label: "04 ลิงก์สินค้า (Product Link)",
+                        filename: "product-link.txt",
+                        template: () => `https://vt.tiktok.com/ZS924jotvLu92-8DVQg/`
+                    }
+                ]
+            },
+            contact: {
+                title: "📞 Contact (Affiliate/Commission)",
+                badge: "TikTok",
+                showBudget: false,
+                steps: [
+                    {
+                        label: "01 สคริปต์เสนอร่วมงาน (Outreach Script)",
+                        filename: "contact-outreach.txt",
+                        template: (ch) => `สวัสดีครับ 🙇🏻 โอ๊ค จากบริษัทไดร์ฟครับ\n\nพอดีติดตามคอนเทนต์ของคุณใน TikTok จากช่อง (${ch}) แล้วรู้สึกว่าสไตล์ช่องน่าสนใจมากครับ 😊\n\n ตอนนี้ทางเรากำลังหา Creator ร่วมรีวิวสินค้าของแบรนด์ เลยอยากขออนุญาตสอบถามว่าพอสนใจรับงานแนว Affiliate / Commission ไหมครับ\n\nทางเราจะส่งสินค้าให้ทดลองใช้ฟรีครับ\n\nและมีค่าคอมจากยอดขายผ่าน TikTok Shop ให้ครับ ✨\n\nรีวิวในสไตล์ของตัวเองได้เต็มที่เลยครับ\n\nผมขอช่องทางคุยงานหน่อยครับหรือสะดวกทาง (Instagram) แจ้งได้เลยนะครับขอบคุณมากๆครับ🙏🏻🙇🏻\n\nหากสนใจ เดี๋ยวโอ๊คส่งรายละเอียดเพิ่มเติมให้ได้เลยครับ 🙏🏻`
+                    }
+                ]
+            },
+            gmail: {
+                title: "📧 Gmail Outreach Letter",
+                badge: "Email Business",
+                showBudget: false,
+                steps: [
+                    {
+                        label: "01 จดหมายเชิญร่วมงานอย่างเป็นทางการ (Official Invitation)",
+                        filename: "gmail-outreach.txt",
+                        template: (ch) => `เรียน คุณ (${ch})\n\nสวัสดีครับ ผม (โอ๊ค) ติดต่อจาก แบรนด์ Drive บริษัทไดร์ฟจำกัดนะครับ\n\nพอดีผมมีโอกาสได้ติดตามผลงานของคุณ (${ch}) ผ่านทาง (TikTok) แล้วรู้สึกสนใจในการทำคลิปมากๆ เลยครับ เลยตั้งใจอีเมลมาทักทายและขออนุญาตขอช่องทางติดต่อ Connection เพื่อพูดคุยเกี่ยวกับงาน\n\nพอดีทางเราต้องการหาพันธมิตร tiktok ในการกระจายสินค้า ทางเราจึงมีข้อเสนอเป็นส่วนแบ่งยอดขาย 10% (สำหรับสินค้าที่ปักตะกร้า) ทางเราจะจัดส่งสินค้าไปให้ใช้ก่อน(ฟรี)\n\nรีวิว สไตล์คุณ ได้เลยเต็มที่\n(งานนี้ไม่ มีBudget นะครับแต่จะเป็นส่วนแบ่งยอดขายผ่านระบบ tiktok shop ครับหรือคอมมิชชั่นจากยอดขาย )\n\nยินดีที่ได้รู้จักอย่างเป็นทางการผ่านทาง Gmail นะครับ หากคุณ (${ch}) สามารถทักมาพูดคุยกันได้ตลอดเลยครับ ยินดีมากๆ ครับ\n\nขอให้เป็นสัปดาห์ที่ดีและราบรื่นนะครับ\n\nขอแสดงความนับถือ\n(โอ๊ค)\n(ช่องทางติดต่อ Line : 0641607169)`
+                    }
+                ]
+            },
+            tiktok: {
+                title: "💬 TikTok Quick Direct Message",
+                badge: "TikTok DM",
+                showBudget: false,
+                steps: [
+                    {
+                        label: "01 สคริปต์ทักทายด่วน (Quick DM Script)",
+                        filename: "tiktok-dm.txt",
+                        template: () => `สวัสดีครับผม โอ๊ค จากบริษัทไดรฟ์จำกัดครับ มาติดงานรีวิวสินค้าตัวใหม่ของทางแบรนด์ ชื่อ Sereniz(เซเรไนท์) เป็นแม็กนีเซียมปรับสมดุลการนอนครับ ผมขอช่องทางคุยงานหน่อยครับหรือสะดวกทาง Instagram แจ้งได้เลยนะครับขอบคุณมากๆครับ🙏🏻🙇🏻 (พอดีค้นหาไลน์ไม่เจอครับ)`
+                    }
+                ]
+            },
+            buyasset: {
+                title: "🪙 Buy Asset (ซื้อสิทธิ์การใช้คลิป)",
+                badge: "Paid Campaign",
+                showBudget: true,
+                steps: [
+                    {
+                        label: "01 แนะนำตัว & ข้อตกลงงาน (Intro & SOW)",
+                        filename: "buy-asset-intro.txt",
+                        template: (ch, budget) => `สวัสดีครับ โอ๊คนะครับ ติดต่อจาก แบรนด์ Drive บริษัท ไดร์ฟ จำกัด ครับ 🙏\n\nได้เห็นผลงานผ่านช่อง TikTok จากช่อง (${ch}) ทางแบรนด์จึงมีความสนใจ Asset คลิป Influencer หรือซื้อคลิป โดยการจัดทำคลิปวิดีโอรีวิวสินค้า เพื่อนำไปเผยแพร่บนช่องทางของแบรนด์โดยตรง\n(ไม่ต้องโพสต์ลงช่องทางส่วนตัวของคุณนะครับ)\n\nสินค้า: Sereniz ผลิตภัณฑ์เสริมอาหาร\n🔗 https://vt.tiktok.com/ZS9eUvXJDCM39-gqR5D/\n\n✨ รายละเอียดงาน (SOW)\n* จัดทำคลิปวิดีโอรีวิวสินค้า 1 คลิป โดยไม่ต้องใส่ Text\n* ความยาวประมาณ 1 นาที (ไม่ต่ำกว่า 45 วินาที) มีการพากย์เสียง\n* ใช้สำหรับลงทุกช่องทางของแบรนด์\n* ถ่ายทำตามบรีฟของทางแบรนด์ (สามารถปรับสไตล์ให้เหมาะกับตัวคุณได้ค่ะ)\n* ส่ง Draft แรกภายใน 3–5 วัน หลังจากได้รับสินค้า\n* ทางแบรนด์ขอสิทธิ์แก้ไขงานได้ไม่เกิน 3 ครั้ง\n\n💰Budget : ${budget} บาท\n\nหากสนใจ สามารถแจ้งเรท / สอบถามรายละเอียดเพิ่มเติมได้เลยนะครับ\nขอบคุณมากครับ 🙏✨`
+                    },
+                    {
+                        label: "02 คำถามเช็คความพร้อม (Contract Agreement Inquiry)",
+                        filename: "buy-asset-question.txt",
+                        template: () => `สะดวกเซ็นสัญญาแจ้งงานไหมครับ`
+                    },
+                    {
+                        label: "03 สัญญาจ้างงาน (Employment Contract Message)",
+                        filename: "buy-asset-contract.txt",
+                        template: () => `ส่วนนี้เป็นสัญญาครับผม หากมีตรงไหนสงสัยถามผมได้เลยนะครับ`
+                    },
+                    {
+                        label: "04 ขอที่อยู่จัดส่งของรางวัล/สินค้า (Delivery Details Request)",
+                        filename: "buy-asset-address.txt",
+                        template: () => `ขอชื่อที่อยู่เบอร์โทรสำหรับส่งสินค้าหน่อยครับ`
+                    },
+                    {
+                        label: "05 ลิงก์บรีฟ Canva (Canva Brief Link)",
+                        filename: "buy-asset-brief.txt",
+                        template: () => `https://www.canva.com/design/DAHCHKdovR4/kctPkJYZTbcJ14eMN8Qo7A/edit\nส่วนนี้จะเป็นบรีฟงานและข้อมูลสินค้าครับผม🙏✨`
+                    }
+                ]
+            }
+        };
+
+        // State variables
+        let currentCampaign = 'sereniz';
+        let channelName = '';
+        let budgetValue = '';
+        let checkedStates = {}; // Stores checked states per step (format: 'campaignName_stepIndex')
+
+        // Initialize state on load
+        window.addEventListener('load', () => {
+            // Load saved input values from localStorage
+            channelName = localStorage.getItem('global_channel') || '';
+            budgetValue = localStorage.getItem('global_budget') || '500';
+            currentCampaign = localStorage.getItem('global_active_campaign') || 'sereniz';
+
+            document.getElementById('sidebarChannel').value = channelName;
+            document.getElementById('sidebarBudget').value = budgetValue;
+
+            // Load checked states from localStorage
+            const savedChecked = localStorage.getItem('global_checked_states');
+            if (savedChecked) {
+                try {
+                    checkedStates = JSON.parse(savedChecked);
+                } catch(e) {}
+            }
+
+            switchCampaign(currentCampaign);
+        });
+
+        // Sync inputs globally
+        function handleInputSync(inputEl, type) {
+            const val = inputEl.value;
+            if (type === 'channel') {
+                channelName = val;
+                localStorage.setItem('global_channel', val);
+            } else if (type === 'budget') {
+                budgetValue = val;
+                localStorage.setItem('global_budget', val);
+            }
+            renderActiveCampaign();
+        }
+
+        // Toggle Budget input view in sidebar depending on campaign requirements
+        function toggleBudgetField(show) {
+            const el = document.getElementById('budgetInputContainer');
+            if (show) {
+                el.style.display = 'flex';
+            } else {
+                el.style.display = 'none';
+            }
+        }
+
+        // Switch to a different outreach template type
+        function switchCampaign(campaignId) {
+            currentCampaign = campaignId;
+            localStorage.setItem('global_active_campaign', campaignId);
+
+            // Update active menu buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`nav-${campaignId}`).classList.add('active');
+
+            // Toggle budget field display
+            toggleBudgetField(templates[campaignId].showBudget);
+
+            // Set layout grid class (if 1 card, make it full-width layout)
+            const gridEl = document.getElementById('scriptCardsContainer');
+            if (templates[campaignId].steps.length === 1) {
+                gridEl.classList.add('single-card');
+            } else {
+                gridEl.classList.remove('single-card');
+            }
+
+            // Render details
+            renderActiveCampaign();
+        }
+
+        // Render current active template content
+        function renderActiveCampaign() {
+            const data = templates[currentCampaign];
+            document.getElementById('activeCampaignTitle').innerHTML = `${data.title} <span class="campaign-badge">${data.badge}</span>`;
+
+            const container = document.getElementById('scriptCardsContainer');
+            container.innerHTML = '';
+
+            let totalSteps = data.steps.length;
+            let completedSteps = 0;
+
+            const displayChannel = channelName.trim() || '(ชื่อช่อง)';
+            let displayBudget = budgetValue.trim();
+            if (!displayBudget) {
+                displayBudget = '500 บาท';
+            } else if (/^\d+$/.test(displayBudget)) {
+                displayBudget = `${displayBudget} บาท`;
+            }
+
+            data.steps.forEach((step, idx) => {
+                const key = `${currentCampaign}_${idx}`;
+                const isChecked = !!checkedStates[key];
+                if (isChecked) completedSteps++;
+
+                // Build initial text with highlight markers
+                const rawText = step.template(displayChannel, displayBudget);
+                
+                // Escape text for safety, then add styled spans for highlighted tokens
+                const escText = esc(rawText);
+                let highlightedHtml = escText;
+                
+                if (channelName.trim()) {
+                    highlightedHtml = highlightedHtml.replaceAll(esc(displayChannel), `<span class="hl">${esc(displayChannel)}</span>`);
+                }
+                if (data.showBudget && budgetValue.trim()) {
+                    highlightedHtml = highlightedHtml.replaceAll(esc(displayBudget), `<span class="hl-budget">${esc(displayBudget)}</span>`);
+                }
+
+                // Create Card element
+                const card = document.createElement('div');
+                card.className = `script-card ${isChecked ? 'completed' : ''}`;
+                card.id = `card_${idx}`;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <span class="step-number">${idx + 1}</span>
+                            <span class="card-title">${step.label}</span>
+                        </div>
+                        <div class="card-actions">
+                            <label class="sent-indicator">
+                                <input type="checkbox" class="sent-checkbox" id="check_${idx}" onchange="toggleStepStatus(${idx})" ${isChecked ? 'checked' : ''}>
+                                <span>ส่งแล้ว</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body-wrapper">
+                        <div class="card-body" contenteditable="true" id="body_${idx}" onblur="handleTextEdit(${idx})">${highlightedHtml}</div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-copy" id="copy_btn_${idx}" onclick="copyCardText(${idx})">
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="display:inline-block; vertical-align:middle; margin-right: 4px;">
+                                <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                                <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                            </svg>
+                            คัดลอกข้อความ
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            // Update global progress bar
+            updateProgress(completedSteps, totalSteps);
+        }
+
+        // HTML escaping
+        function esc(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Toggle checkbox status
+        function toggleStepStatus(idx) {
+            const key = `${currentCampaign}_${idx}`;
+            const checkbox = document.getElementById(`check_${idx}`);
+            const card = document.getElementById(`card_${idx}`);
+
+            if (checkbox.checked) {
+                checkedStates[key] = true;
+                card.classList.add('completed');
+            } else {
+                delete checkedStates[key];
+                card.classList.remove('completed');
+            }
+
+            localStorage.setItem('global_checked_states', JSON.stringify(checkedStates));
+            
+            // Re-calculate progress
+            let totalSteps = templates[currentCampaign].steps.length;
+            let completedSteps = 0;
+            for(let i=0; i<totalSteps; i++) {
+                if (checkedStates[`${currentCampaign}_${i}`]) completedSteps++;
+            }
+            updateProgress(completedSteps, totalSteps);
+        }
+
+        // Keep track of edited texts in memory if desired (optional: we just read directly from DOM)
+        function handleTextEdit(idx) {
+            // No strict logic needed on blur since copyCardText reads directly from the element text content.
+        }
+
+        // Update progress bar helper
+        function updateProgress(completed, total) {
+            const pct = total > 0 ? (completed / total) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('progressText').innerText = `สถานะ: ส่งไปแล้ว ${completed}/${total} ขั้นตอน`;
+        }
+
+        // Copy card text logic
+        function copyCardText(idx) {
+            const bodyEl = document.getElementById(`body_${idx}`);
+            // Use textContent to strip HTML highlights and copy only clean text
+            const textToCopy = bodyEl.innerText || bodyEl.textContent;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast("คัดลอกส่วนที่ " + (idx + 1) + " แล้ว! นำไปส่งต่อได้เลย");
+                
+                // Automatically tick the checkbox "ส่งแล้ว" for convenience
+                const checkbox = document.getElementById(`check_${idx}`);
+                if (!checkbox.checked) {
+                    checkbox.checked = true;
+                    toggleStepStatus(idx);
+                }
+
+                // Visually animate copy button
+                const btn = document.getElementById(`copy_btn_${idx}`);
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = '✓ คัดลอกเรียบร้อย';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Toast controller
+        let toastTimer;
+        function showToast(msg) {
+            clearTimeout(toastTimer);
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').innerText = msg;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+
+</html>
