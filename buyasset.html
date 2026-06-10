@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Script Tool</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="color.css">
+    <style>
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <nav class="nav">
+            <a href="sereniz.html" class="nav-item">
+                <span class="nav-dot"></span> Sereniz
+            </a>
+            <a href="contact.html" class="nav-item">
+                <span class="nav-dot"></span> Contact
+            </a>
+            <a href="gmail.html" class="nav-item">
+                <span class="nav-dot"></span> Gmail
+            </a>
+            <a href="tiktok.html" class="nav-item">
+                <span class="nav-dot"></span> TikTok
+            </a>
+            <a href="buyasset.html" class="nav-item">
+                <span class="nav-dot"></span> Buy Asset
+            </a>
+        </nav>
+
+        <div class="header">
+            <div class="brand-tag">
+                <span class="brand-tag-icon">📞</span>
+                Buy Asset
+            </div>
+            <h1>สคริปต์ Buy Asset</h1>
+        </div>
+
+        <div class="input-card">
+            <div class="field-label"><span class="field-label-bar"></span> ชื่อช่อง TikTok</div>
+            <input class="channel-input" id="channelInput" type="text" placeholder="ระบุชื่อช่อง"
+                oninput="updateScript()">
+            <div class="input-hint">ชื่อช่องจะถูกแทรกในข้อความโดยอัตโนมัติ</div>
+
+            <div class="field-label"><span class="field-label-bar"></span> Budget (บาท)</div>
+            <input class="channel-input" id="budgetInput" type="text" placeholder="ระบุงบประมาณ"
+                oninput="updateScript()">
+            <div class="input-hint">พิมพ์งบประมาณได้ปกติ เช่น ชื่อช่อง</div>
+        </div>
+
+        <div class="section-header">
+            <div class="section-num">01</div>
+            <div class="section-title">แนะนำตัว</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="script-card">
+            <div class="script-toolbar">
+                <span class="toolbar-filename">buy-asset.txt</span>
+                <button class="copy-btn" id="copyBtn1" onclick="copyMain()">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    คัดลอก
+                </button>
+            </div>
+            <div id="scriptPreview" class="script-body"></div>
+        </div>
+
+        <div class="section-header" style="margin-top:20px">
+            <div class="section-num">02</div>
+            <div class="section-title">คำถาม</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="script-card">
+            <div class="script-toolbar">
+                <span class="toolbar-filename">buy-asset.txt</span>
+                <button class="copy-btn" id="copyBtn2"
+                    onclick="copyText(document.getElementById('c2').innerText, 'copyBtn2')">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    คัดลอก
+                </button>
+            </div>
+            <div id="c2" class="script-body">สะดวกเซ็นสัญญาแจ้งงานไหมครับ</div>
+        </div>
+
+        <div class="section-header" style="margin-top:20px">
+            <div class="section-num">03</div>
+            <div class="section-title">สัญญา ต้องส่งสัญญาก่อน</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="script-card">
+            <div class="script-toolbar">
+                <span class="toolbar-filename">buy-asset.txt</span>
+                <button class="copy-btn" id="copyBtn3"
+                    onclick="copyText(document.getElementById('c3').innerText, 'copyBtn3')">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    คัดลอก
+                </button>
+            </div>
+            <div id="c3" class="script-body">ส่วนนี้เป็นสัญญาครับผม หากมีตรงไหนสงสัยถามผมได้เลยนะครับ</div>
+        </div>
+
+        <div class="section-header" style="margin-top:20px">
+            <div class="section-num">04</div>
+            <div class="section-title">ขอที่อยู่</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="script-card">
+            <div class="script-toolbar">
+                <span class="toolbar-filename">buy-asset.txt</span>
+                <button class="copy-btn" id="copyBtn4"
+                    onclick="copyText(document.getElementById('c4').innerText, 'copyBtn4')">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    คัดลอก
+                </button>
+            </div>
+            <div id="c4" class="script-body">ขอชื่อที่อยู่เบอร์โทรสำหรับส่งสินค้าหน่อยครับ</div>
+        </div>
+
+        <div class="section-header" style="margin-top:20px">
+            <div class="section-num">05</div>
+            <div class="section-title">บรีฟ</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="script-card">
+            <div class="script-toolbar">
+                <span class="toolbar-filename">buy-asset.txt</span>
+                <button class="copy-btn" id="copyBtn5"
+                    onclick="copyText(document.getElementById('c5').innerText, 'copyBtn5')">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    คัดลอก
+                </button>
+            </div>
+            <div id="c5" class="script-body">https://www.canva.com/design/DAHCHKdovR4/kctPkJYZTbcJ14eMN8Qo7A/edit<br>ส่วนนี้จะเป็นบรีฟงานและข้อมูลสินค้าครับผม🙏✨</div>
+        </div>
+
+    </div>
+
+    <div id="toast" class="toast">
+        <span class="toast-icon">✓</span>
+        คัดลอกข้อความแล้ว
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

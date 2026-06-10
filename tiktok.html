@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Script Tool</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="color.css">
+    <style>
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+    <nav class="nav">
+      <a href="sereniz.html" class="nav-item">
+        <span class="nav-dot"></span> Sereniz
+      </a>
+      <a href="contact.html" class="nav-item">
+        <span class="nav-dot"></span> Contact
+      </a>
+      <a href="gmail.html" class="nav-item">
+        <span class="nav-dot"></span> Gmail
+      </a>
+      <a href="tiktok.html" class="nav-item">
+        <span class="nav-dot"></span> TikTok
+      </a>
+      <a href="buyasset.html" class="nav-item">
+        <span class="nav-dot"></span> Buy Asset
+      </a>
+    </nav>
+
+        <div class="header">
+            <div class="brand-tag">
+                <span class="brand-tag-icon">📞</span>
+                TikTok Shop
+            </div>
+            <h1>สคริปต์ TikTok Shop</h1>
+        </div>
+
+        <div class="section-header">
+            <div class="section-num">01</div>
+            <div class="section-title">แนะนำตัว</div>
+            <div class="section-divider"></div>
+        </div>
+        <div class="script-card">
+            <div class="script-toolbar">
+                <span class="toolbar-filename">tiktok-shop.txt</span>
+                <button class="copy-btn" id="copyBtn1" onclick="copyMain()">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    คัดลอก
+                </button>
+            </div>
+            <div id="scriptPreview" class="script-body"></div>
+        </div>
+
+    </div>
+
+    <div id="toast" class="toast">
+        <span class="toast-icon">✓</span>
+        คัดลอกข้อความแล้ว
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
