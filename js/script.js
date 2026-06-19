@@ -16,11 +16,7 @@
 })();
 
 // Default profiles for the outreach team
-const defaultProfiles = [
-    { id: '1', name: 'โอ๊ค', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' },
-    { id: '2', name: 'โบว์', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' },
-    { id: '3', name: 'พีช', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' }
-];
+const defaultProfiles = [];
 
 let userProfiles = [];
 let activeProfileId = '';
@@ -32,6 +28,11 @@ function initUserProfiles() {
     if (savedProfiles) {
         try {
             userProfiles = JSON.parse(savedProfiles);
+            
+            // Clean up legacy default profiles if present
+            const beforeLen = userProfiles.length;
+            userProfiles = userProfiles.filter(p => p.id !== '1' && p.id !== '2' && p.id !== '3');
+            
             // Safety sanitization of old test cache data
             let hasPersonalData = false;
             userProfiles.forEach(p => {
@@ -44,7 +45,7 @@ function initUserProfiles() {
                     hasPersonalData = true;
                 }
             });
-            if (hasPersonalData) {
+            if (hasPersonalData || userProfiles.length !== beforeLen) {
                 localStorage.setItem('global_user_profiles', JSON.stringify(userProfiles));
             }
         } catch(e) {
@@ -62,6 +63,7 @@ function initUserProfiles() {
         localStorage.setItem('global_active_profile_id', activeProfileId);
     } else {
         activeProfileId = '';
+        localStorage.setItem('global_active_profile_id', '');
     }
 }
 
@@ -70,7 +72,7 @@ initUserProfiles();
 
 function getCurrentUser() {
     const user = userProfiles.find(p => p.id === activeProfileId);
-    return user || { name: 'โอ๊ค', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' };
+    return user || { name: '(ใส่ชื่อเล่น)', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' };
 }
 
 // Database of outreach templates
