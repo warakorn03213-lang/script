@@ -56,6 +56,20 @@ function initCustomTemplates() {
         }
     }
     
+    // Explicitly delete and purge diagnostic mock templates from local cache
+    let needsPurge = false;
+    if (customTemplates['test_id']) {
+        delete customTemplates['test_id'];
+        needsPurge = true;
+    }
+    if (customTemplates['test_steps_id']) {
+        delete customTemplates['test_steps_id'];
+        needsPurge = true;
+    }
+    if (needsPurge) {
+        localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+    }
+    
     if (supabaseClient) {
         loadSupabaseTemplates();
     }
