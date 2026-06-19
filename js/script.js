@@ -25,6 +25,25 @@
     }
 })();
 
+// ==========================================
+// SUPABASE CONFIGURATION (OPTIONAL)
+// ==========================================
+// Fill in your credentials below to sync custom templates across the team.
+// Other user data (Name, Phone, Email) will remain strictly local (not synced).
+const SUPABASE_URL = ""; 
+const SUPABASE_ANON_KEY = "";
+// ==========================================
+
+let supabaseClient = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    try {
+        const { createClient } = supabase;
+        supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch(e) {
+        console.error("Supabase load error: check CDN loading.", e);
+    }
+}
+
 let customTemplates = {};
 function initCustomTemplates() {
     const saved = localStorage.getItem('global_custom_templates');
@@ -35,7 +54,45 @@ function initCustomTemplates() {
             customTemplates = {};
         }
     }
+    
+    if (supabaseClient) {
+        loadSupabaseTemplates();
+    }
 }
+
+async function loadSupabaseTemplates() {
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('custom_templates')
+            .select('*');
+            
+        if (error) throw error;
+        
+        if (data) {
+            data.forEach(item => {
+                customTemplates[item.id] = {
+                    title: item.title,
+                    badge: item.badge,
+                    showBudget: item.show_budget,
+                    steps: item.steps
+                };
+            });
+            
+            localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+            renderSidebarNavigation();
+            
+            const currentHash = window.location.hash.replace('#', '');
+            if (currentHash && customTemplates[currentHash]) {
+                currentCampaign = currentHash;
+            }
+            renderActiveCampaign();
+        }
+    } catch(e) {
+        console.error("Error loading templates from Supabase:", e);
+    }
+}
+
 initCustomTemplates();
 
 
@@ -1120,12 +1177,37 @@ function saveCustomTemplate() {
     // Save to localStorage
     localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
     
+    // Save to Supabase if configured
+    if (supabaseClient) {
+        saveToSupabase(key, customTemplates[key]);
+    }
+    
     // Re-render sidebar and close modal
     renderSidebarNavigation();
     closeCustomTemplateModal();
     
     // Automatically select the template
     selectCustomCampaign(key);
+}
+
+async function saveToSupabase(key, templateData) {
+    if (!supabaseClient) return;
+    try {
+        const { error } = await supabaseClient
+            .from('custom_templates')
+            .upsert({
+                id: key,
+                title: templateData.title,
+                badge: templateData.badge,
+                show_budget: templateData.showBudget,
+                steps: templateData.steps
+            });
+            
+        if (error) throw error;
+    } catch(e) {
+        console.error("Error saving template to Supabase:", e);
+        showToast("ไม่สามารถอัพเดทสคริปต์ออนไลน์ได้ (แต่บันทึกลงในเครื่องนี้แล้ว)");
+    }
 }
 
 function deleteCustomTemplate(key) {
@@ -1140,10 +1222,30 @@ function deleteCustomTemplate(key) {
         const title = customTemplates[key] ? customTemplates[key].title : (templates[key] ? templates[key].title : '');
         delete customTemplates[key];
         localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+        
+        // Delete from Supabase if configured
+        if (supabaseClient) {
+            deleteFromSupabase(key);
+        }
+        
         showToast(isDefault ? `คืนค่าเทมเพลต "${title}" สำเร็จ` : `ลบเทมเพลต "${title}" สำเร็จ`);
         
         renderSidebarNavigation();
         renderActiveCampaign();
+    }
+}
+
+async function deleteFromSupabase(key) {
+    if (!supabaseClient) return;
+    try {
+        const { error } = await supabaseClient
+            .from('custom_templates')
+            .delete()
+            .eq('id', key);
+            
+        if (error) throw error;
+    } catch(e) {
+        console.error("Error deleting template from Supabase:", e);
     }
 }
 
