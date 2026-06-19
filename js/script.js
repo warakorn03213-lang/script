@@ -217,7 +217,7 @@ function initUserProfiles() {
             let hasPersonalData = false;
             userProfiles.forEach(p => {
                 if (p.phone === '0641607169') {
-                    p.phone = '08X-XXX-XXXX';
+                    p.phone = '(Line ID)';
                     hasPersonalData = true;
                 }
                 if (p.email === 'oak@drivebrand.co.th') {
@@ -254,11 +254,11 @@ function getCurrentUser() {
     if (user) {
         return {
             name: user.name,
-            phone: (user.phone && user.phone.trim()) ? user.phone.trim() : '08X-XXX-XXXX',
+            phone: (user.phone && user.phone.trim()) ? user.phone.trim() : '(Line ID)',
             email: (user.email && user.email.trim()) ? user.email.trim() : 'contact@drivebrand.co.th'
         };
     }
-    return { name: '(ใส่ชื่อเล่น)', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' };
+    return { name: '(ใส่ชื่อเล่น)', phone: '(Line ID)', email: 'contact@drivebrand.co.th' };
 }
 
 // Database of outreach templates
@@ -310,7 +310,7 @@ const templates = {
             {
                 label: "จดหมายเชิญร่วมงานอย่างเป็นทางการ (Official Invitation)",
                 filename: "gmail-outreach.txt",
-                template: (ch) => `เรียน คุณ (${ch})\n\nสวัสดีครับ ผม (${getCurrentUser().name}) ติดต่อจาก แบรนด์ Drive บริษัทไดร์ฟจำกัดนะครับ\n\nพอดีผมมีโอกาสได้ติดตามผลงานของคุณ (${ch}) ผ่านทาง (TikTok) แล้วรู้สึกสนใจในการทำคลิปมากๆ เลยครับ เลยตั้งใจอีเมลมาทักทายและขออนุญาตขอช่องทางติดต่อ Connection เพื่อพูดคุยเกี่ยวกับงาน\n\nพอดีทางเราต้องการหาพันธมิตร tiktok ในการกระจายสินค้า ทางเราจึงมีข้อเสนอเป็นส่วนแบ่งยอดขาย 10% (สำหรับสินค้าที่ปักตะกร้า) ทางเราจะจัดส่งสินค้าไปให้ใช้ก่อน(ฟรี)\n\nรีวิว สไตล์คุณ ได้เลยเต็มที่\n(งานนี้ไม่ มีBudget นะครับแต่จะเป็นส่วนแบ่งยอดขายผ่านระบบ tiktok shop ครับหรือคอมมิชชั่นจากยอดขาย )\n\nยินดีที่ได้รู้จักอย่างเป็นทางการผ่านทาง Gmail นะครับ หากคุณ (${ch}) สามารถทักมาพูดคุยกันได้ตลอดเลยครับ ยินดีมากๆ ครับ\n\nขอให้เป็นสัปดาห์ที่ดีและราบรื่นนะครับ\n\nขอแสดงความนับถือ\n(${getCurrentUser().name})\n(ช่องทางติดต่อ Line / โทร : ${getCurrentUser().phone} | อีเมล : ${getCurrentUser().email})`
+                template: (ch) => `เรียน คุณ (${ch})\n\nสวัสดีครับ ผม (${getCurrentUser().name}) ติดต่อจาก แบรนด์ Drive บริษัทไดร์ฟจำกัดนะครับ\n\nพอดีผมมีโอกาสได้ติดตามผลงานของคุณ (${ch}) ผ่านทาง (TikTok) แล้วรู้สึกสนใจในการทำคลิปมากๆ เลยครับ เลยตั้งใจอีเมลมาทักทายและขออนุญาตขอช่องทางติดต่อ Connection เพื่อพูดคุยเกี่ยวกับงาน\n\nพอดีทางเราต้องการหาพันธมิตร tiktok ในการกระจายสินค้า ทางเราจึงมีข้อเสนอเป็นส่วนแบ่งยอดขาย 10% (สำหรับสินค้าที่ปักตะกร้า) ทางเราจะจัดส่งสินค้าไปให้ใช้ก่อน(ฟรี)\n\nรีวิว สไตล์คุณ ได้เลยเต็มที่\n(งานนี้ไม่ มีBudget นะครับแต่จะเป็นส่วนแบ่งยอดขายผ่านระบบ tiktok shop ครับหรือคอมมิชชั่นจากยอดขาย )\n\nยินดีที่ได้รู้จักอย่างเป็นทางการผ่านทาง Gmail นะครับ หากคุณ (${ch}) สามารถทักมาพูดคุยกันได้ตลอดเลยครับ ยินดีมากๆ ครับ\n\nขอให้เป็นสัปดาห์ที่ดีและราบรื่นนะครับ\n\nขอแสดงความนับถือ\n(${getCurrentUser().name})\n(ช่องทางติดต่อ Line ID : ${getCurrentUser().phone} | อีเมล : ${getCurrentUser().email})`
             }
         ]
     },
@@ -823,8 +823,8 @@ function injectUserInterface() {
                                 <input type="text" id="profileName" class="input-field" placeholder="ระบุชื่อเล่น">
                             </div>
                             <div class="form-group">
-                                <label for="profilePhone">เบอร์โทร / Line ID</label>
-                                <input type="text" id="profilePhone" class="input-field" placeholder="เช่น 08X-XXX-XXXX">
+                                <label for="profilePhone">Line ID</label>
+                                <input type="text" id="profilePhone" class="input-field" placeholder="เช่น line_username">
                             </div>
                             <div class="form-group">
                                 <label for="profileEmail">อีเมลสำหรับผู้ใช้</label>
@@ -896,7 +896,7 @@ function injectUserInterface() {
                         <div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 11.5px; color: var(--text-muted); line-height: 1.5;">
                             <strong>💡 คำค้นแสดงผลอัตโนมัติ (สามารถนำไปใส่ในสคริปต์ได้):</strong><br>
                             • <code>{ชื่อคนส่ง}</code> / <code>{name}</code> : จะแทนด้วยชื่อเล่นผู้ส่งที่เลือกไว้<br>
-                            • <code>{เบอร์โทร}</code> / <code>{phone}</code> : จะแทนด้วยเบอร์โทร/Line ID<br>
+                            • <code>{เบอร์โทร}</code> / <code>{phone}</code> : จะแทนด้วย Line ID<br>
                             • <code>{อีเมล}</code> / <code>{email}</code> : จะแทนด้วยอีเมลผู้ใช้<br>
                             • <code>{ชื่อช่อง}</code> / <code>{channel}</code> : จะแทนด้วยชื่อช่องที่ป้อนในแถบข้าง<br>
                             • <code>{งบประมาณ}</code> / <code>{budget}</code> : จะแทนด้วยงบประมาณที่ป้อนในแถบข้าง
@@ -960,7 +960,7 @@ function renderModalProfileList() {
         const item = document.createElement('div');
         item.className = `profile-item ${isActive ? 'active-profile' : ''}`;
         
-        const displayPhone = (profile.phone && profile.phone.trim()) ? profile.phone : '08X-XXX-XXXX';
+        const displayPhone = (profile.phone && profile.phone.trim()) ? profile.phone : '(Line ID)';
         const displayEmail = (profile.email && profile.email.trim()) ? profile.email : 'contact@drivebrand.co.th';
         
         item.innerHTML = `
@@ -970,7 +970,7 @@ function renderModalProfileList() {
                     ${isActive ? '<span class="profile-active-tag">ใช้งานอยู่</span>' : ''}
                 </div>
                 <div class="profile-item-details">
-                    📞 ${esc(displayPhone)} | 📧 ${esc(displayEmail)}
+                    Line: ${esc(displayPhone)} | 📧 ${esc(displayEmail)}
                 </div>
             </div>
             <div class="profile-item-actions">
