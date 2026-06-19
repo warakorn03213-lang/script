@@ -1221,7 +1221,12 @@ async function saveToSupabase(key, templateData) {
         if (error) throw error;
     } catch(e) {
         console.error("Error saving template to Supabase:", e);
-        showToast("ไม่สามารถอัพเดทสคริปต์ออนไลน์ได้ (แต่บันทึกลงในเครื่องนี้แล้ว)");
+        if (e && typeof e === 'object') {
+            console.log("Supabase Save Error Details:", JSON.stringify(e));
+            showToast("Supabase Save Error: " + (e.message || JSON.stringify(e)));
+        } else {
+            showToast("ไม่สามารถอัพเดทสคริปต์ออนไลน์ได้ (แต่บันทึกลงในเครื่องนี้แล้ว)");
+        }
     }
 }
 
