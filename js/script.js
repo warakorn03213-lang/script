@@ -71,6 +71,16 @@ async function loadSupabaseTemplates() {
         if (error) throw error;
         
         if (data) {
+            const remoteKeys = new Set(data.map(item => item.id));
+            const localKeys = Object.keys(customTemplates);
+            
+            // Auto-upload any templates created locally before Supabase integration
+            for (const key of localKeys) {
+                if (!remoteKeys.has(key)) {
+                    await saveToSupabase(key, customTemplates[key]);
+                }
+            }
+            
             data.forEach(item => {
                 customTemplates[item.id] = {
                     title: item.title,
