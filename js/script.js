@@ -72,7 +72,14 @@ initUserProfiles();
 
 function getCurrentUser() {
     const user = userProfiles.find(p => p.id === activeProfileId);
-    return user || { name: '(ใส่ชื่อเล่น)', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' };
+    if (user) {
+        return {
+            name: user.name,
+            phone: (user.phone && user.phone.trim()) ? user.phone.trim() : '08X-XXX-XXXX',
+            email: (user.email && user.email.trim()) ? user.email.trim() : 'contact@drivebrand.co.th'
+        };
+    }
+    return { name: '(ใส่ชื่อเล่น)', phone: '08X-XXX-XXXX', email: 'contact@drivebrand.co.th' };
 }
 
 // Database of outreach templates
@@ -688,6 +695,9 @@ function renderModalProfileList() {
         const item = document.createElement('div');
         item.className = `profile-item ${isActive ? 'active-profile' : ''}`;
         
+        const displayPhone = (profile.phone && profile.phone.trim()) ? profile.phone : '08X-XXX-XXXX';
+        const displayEmail = (profile.email && profile.email.trim()) ? profile.email : 'contact@drivebrand.co.th';
+        
         item.innerHTML = `
             <div class="profile-item-info" style="cursor: pointer; flex: 1;" onclick="selectActiveProfile('${profile.id}')">
                 <div class="profile-item-name">
@@ -695,7 +705,7 @@ function renderModalProfileList() {
                     ${isActive ? '<span class="profile-active-tag">ใช้งานอยู่</span>' : ''}
                 </div>
                 <div class="profile-item-details">
-                    📞 ${esc(profile.phone)} | 📧 ${esc(profile.email || '-')}
+                    📞 ${esc(displayPhone)} | 📧 ${esc(displayEmail)}
                 </div>
             </div>
             <div class="profile-item-actions">
@@ -719,8 +729,8 @@ function saveProfile() {
     const email = emailEl.value.trim();
     const editId = editIdEl.value;
 
-    if (!name || !phone) {
-        alert('กรุณากรอกชื่อเล่นและเบอร์โทร/Line ID');
+    if (!name) {
+        alert('กรุณากรอกชื่อเล่น');
         return;
     }
 
