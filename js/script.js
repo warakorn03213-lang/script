@@ -70,8 +70,74 @@ function initCustomTemplates() {
         localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
     }
     
+    // Run sanitization on locally loaded templates
+    sanitizeCustomTemplatesWithPlaceholders();
+    
     if (supabaseClient) {
         loadSupabaseTemplates();
+    }
+}
+
+function sanitizeCustomTemplatesWithPlaceholders() {
+    let changed = false;
+    const legacyPhones = ['0641607169'];
+    const legacyEmails = ['oak@drivebrand.co.th'];
+    
+    Object.keys(customTemplates).forEach(key => {
+        const tpl = customTemplates[key];
+        if (tpl && tpl.steps) {
+            tpl.steps.forEach(step => {
+                if (step.templateText) {
+                    let text = step.templateText;
+                    
+                    // Replace legacy credentials
+                    legacyPhones.forEach(ph => {
+                        if (text.includes(ph)) {
+                            text = text.replaceAll(ph, '{เบอร์โทร}');
+                            changed = true;
+                        }
+                    });
+                    legacyEmails.forEach(em => {
+                        if (text.includes(em)) {
+                            text = text.replaceAll(em, '{อีเมล}');
+                            changed = true;
+                        }
+                    });
+                    
+                    // Replace current profiles credentials
+                    if (userProfiles && userProfiles.length > 0) {
+                        userProfiles.forEach(profile => {
+                            if (profile.phone && profile.phone.trim().length > 3 && text.includes(profile.phone)) {
+                                text = text.replaceAll(profile.phone, '{เบอร์โทร}');
+                                changed = true;
+                            }
+                            if (profile.email && profile.email.trim().length > 3 && text.includes(profile.email)) {
+                                text = text.replaceAll(profile.email, '{อีเมล}');
+                                changed = true;
+                            }
+                            if (profile.name && profile.name.trim().length > 1 && text.includes(profile.name)) {
+                                text = text.replaceAll(profile.name, '{ชื่อคนส่ง}');
+                                changed = true;
+                            }
+                        });
+                    }
+                    
+                    if (text !== step.templateText) {
+                        step.templateText = text;
+                        changed = true;
+                    }
+                }
+            });
+        }
+    });
+    
+    if (changed) {
+        localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+        if (supabaseClient) {
+            Object.keys(customTemplates).forEach(key => {
+                saveToSupabase(key, customTemplates[key]);
+            });
+        }
     }
 }
 
@@ -103,6 +169,9 @@ async function loadSupabaseTemplates() {
                     steps: item.steps
                 };
             });
+            
+            // Run sanitization after merging remote updates
+            sanitizeCustomTemplatesWithPlaceholders();
             
             localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
             renderSidebarNavigation();
