@@ -5,15 +5,39 @@
     
     if (pageId === 'index') {
         const lastCampaign = localStorage.getItem('global_last_campaign');
+        const defaultList = ['sereniz', 'contact', 'gmail', 'tiktok', 'buyasset'];
+        
         if (lastCampaign && lastCampaign !== 'index') {
-            window.location.replace(`pages/${lastCampaign}.html`);
+            if (defaultList.includes(lastCampaign)) {
+                window.location.replace(`pages/${lastCampaign}.html`);
+            } else {
+                // If it's a custom template, redirect to the default sereniz page with the hash
+                window.location.replace(`pages/sereniz.html#${lastCampaign}`);
+            }
         } else {
             window.location.replace('pages/sereniz.html');
         }
     } else {
-        localStorage.setItem('global_last_campaign', pageId);
+        const defaultList = ['sereniz', 'contact', 'gmail', 'tiktok', 'buyasset'];
+        if (defaultList.includes(pageId) || pageId.startsWith('custom_')) {
+            localStorage.setItem('global_last_campaign', pageId);
+        }
     }
 })();
+
+let customTemplates = {};
+function initCustomTemplates() {
+    const saved = localStorage.getItem('global_custom_templates');
+    if (saved) {
+        try {
+            customTemplates = JSON.parse(saved);
+        } catch(e) {
+            customTemplates = {};
+        }
+    }
+}
+initCustomTemplates();
+
 
 // Default profiles for the outreach team
 const defaultProfiles = [];
@@ -183,6 +207,10 @@ const templates = {
 
 // Detect current page file to set campaign
 function getPageId() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && (templates[hash] || customTemplates[hash])) {
+        return hash;
+    }
     const filename = window.location.pathname.split('/').pop().replace('.html', '');
     return (filename === '' || filename === 'index') ? 'sereniz' : filename;
 }
@@ -197,18 +225,15 @@ let currentFlowStep = 0;
 
 // Initialize on window load
 window.addEventListener('DOMContentLoaded', () => {
-    // Determine campaign from filename
+    // Determine campaign from filename or hash
     currentCampaign = getPageId();
-
-    // Set active class in navbar
-    const activeNavBtn = document.getElementById(`nav-${currentCampaign}`);
-    if (activeNavBtn) {
-        activeNavBtn.classList.add('active');
-    }
 
     // Load user profiles and inject user interface
     initUserProfiles();
     injectUserInterface();
+    
+    // Render dynamic sidebar navigation
+    renderSidebarNavigation();
 
     // Load saved inputs globally
     channelName = localStorage.getItem('global_channel') || '';
@@ -225,7 +250,10 @@ window.addEventListener('DOMContentLoaded', () => {
     setViewMode(viewMode);
 
     // Toggle budget input visibility based on campaign requirements
-    toggleBudgetField(templates[currentCampaign].showBudget);
+    const data = customTemplates[currentCampaign] || templates[currentCampaign];
+    if (data) {
+        toggleBudgetField(data.showBudget);
+    }
 
     // Load checkboxes state
     const savedChecked = localStorage.getItem('global_checked_states');
@@ -285,7 +313,7 @@ function setViewMode(mode) {
 
 // Render active campaign contents
 function renderActiveCampaign() {
-    const data = templates[currentCampaign];
+    const data = customTemplates[currentCampaign] || templates[currentCampaign];
     if (!data) return;
 
     const titleEl = document.getElementById('activeCampaignTitle');
@@ -363,7 +391,23 @@ function renderActiveCampaign() {
             return;
         }
 
-        const rawText = step.template(displayChannel, displayBudget);
+        let rawText = '';
+        if (typeof step.template === 'function') {
+            rawText = step.template(displayChannel, displayBudget);
+        } else {
+            let t = step.templateText || '';
+            t = t.replaceAll('{ชื่อคนส่ง}', getCurrentUser().name);
+            t = t.replaceAll('{name}', getCurrentUser().name);
+            t = t.replaceAll('{เบอร์โทร}', getCurrentUser().phone);
+            t = t.replaceAll('{phone}', getCurrentUser().phone);
+            t = t.replaceAll('{อีเมล}', getCurrentUser().email);
+            t = t.replaceAll('{email}', getCurrentUser().email);
+            t = t.replaceAll('{ชื่อช่อง}', displayChannel);
+            t = t.replaceAll('{channel}', displayChannel);
+            t = t.replaceAll('{งบประมาณ}', displayBudget);
+            t = t.replaceAll('{budget}', displayBudget);
+            rawText = t;
+        }
         const escText = esc(rawText);
         let highlightedHtml = escText;
         
@@ -488,7 +532,8 @@ function toggleStepStatus(idx) {
 
     localStorage.setItem('global_checked_states', JSON.stringify(checkedStates));
     
-    let totalSteps = templates[currentCampaign].steps.length;
+    const activeData = customTemplates[currentCampaign] || templates[currentCampaign];
+    let totalSteps = activeData ? activeData.steps.length : 0;
     let completedSteps = 0;
     for(let i=0; i<totalSteps; i++) {
         if (checkedStates[`${currentCampaign}_${i}`]) completedSteps++;
@@ -509,7 +554,8 @@ function prevFlowStep() {
 }
 
 function nextFlowStep() {
-    const totalSteps = templates[currentCampaign].steps.length;
+    const activeData = customTemplates[currentCampaign] || templates[currentCampaign];
+    const totalSteps = activeData ? activeData.steps.length : 0;
     if (currentFlowStep < totalSteps - 1) {
         currentFlowStep++;
         renderActiveCampaign();
@@ -556,7 +602,8 @@ function copyCardText(idx, advanceStep = false) {
         }
 
         if (advanceStep) {
-            const totalSteps = templates[currentCampaign].steps.length;
+            const activeData = customTemplates[currentCampaign] || templates[currentCampaign];
+            const totalSteps = activeData ? activeData.steps.length : 0;
             if (currentFlowStep < totalSteps - 1) {
                 setTimeout(() => {
                     nextFlowStep();
@@ -647,6 +694,69 @@ function injectUserInterface() {
         </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // 3. Inject Custom Template Modal HTML into the body if it doesn't exist
+    if (!document.getElementById('customTemplateModal')) {
+        const customTemplateModalHtml = `
+        <div id="customTemplateModal" class="modal-backdrop" style="display: none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3 id="tplModalTitle">➕ เพิ่มรูปแบบเทมเพลตใหม่</h3>
+                    <button class="modal-close" onclick="closeCustomTemplateModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-form" style="margin-bottom: 0;">
+                        <input type="hidden" id="editTplKey" value="">
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label>ชื่อรูปแบบเทมเพลต</label>
+                            <input type="text" id="tplTitle" class="input-field" placeholder="เช่น แคมเปญ Sereniz 20% หรือ ดีลซื้อลิขสิทธิ์">
+                        </div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group">
+                                <label>ป้ายแท็กกำกับ (Badge)</label>
+                                <input type="text" id="tplBadge" class="input-field" placeholder="เช่น TikTok DM หรือ Line">
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: center; padding-top: 24px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" id="tplShowBudget" style="width: 16px; height: 16px;">
+                                    <span>แสดงช่องระบุงบประมาณในแถบข้าง</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="step-builder-section" style="border-top: 1px dashed var(--border); padding-top: 16px; margin-top: 16px;">
+                            <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--text);">ขั้นตอนและข้อความสคริปต์</h4>
+                            <div id="modalStepContainer">
+                                <!-- Step input groups will be added here -->
+                            </div>
+                            
+                            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button type="button" class="btn-secondary" onclick="addModalStepInput()" style="font-size: 12px; padding: 8px 12px; border-radius: 8px;">➕ เพิ่มขั้นตอน</button>
+                                <button type="button" class="btn-secondary" id="btnRemoveModalStep" onclick="removeModalStepInput()" style="font-size: 12px; padding: 8px 12px; border-radius: 8px; display: none;">🗑️ ลบขั้นตอนล่าสุด</button>
+                            </div>
+                        </div>
+
+                        <!-- Helper guide for placeholders -->
+                        <div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 11.5px; color: var(--text-muted); line-height: 1.5;">
+                            <strong>💡 คำค้นแสดงผลอัตโนมัติ (สามารถนำไปใส่ในสคริปต์ได้):</strong><br>
+                            • <code>{ชื่อคนส่ง}</code> / <code>{name}</code> : จะแทนด้วยชื่อเล่นผู้ส่งที่เลือกไว้<br>
+                            • <code>{เบอร์โทร}</code> / <code>{phone}</code> : จะแทนด้วยเบอร์โทร/Line ID<br>
+                            • <code>{อีเมล}</code> / <code>{email}</code> : จะแทนด้วยอีเมลผู้ใช้<br>
+                            • <code>{ชื่อช่อง}</code> / <code>{channel}</code> : จะแทนด้วยชื่อช่องที่ป้อนในแถบข้าง<br>
+                            • <code>{งบประมาณ}</code> / <code>{budget}</code> : จะแทนด้วยงบประมาณที่ป้อนในแถบข้าง
+                        </div>
+
+                        <div class="form-actions" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+                            <button class="btn-secondary" onclick="closeCustomTemplateModal()">ยกเลิก</button>
+                            <button class="btn-copy" onclick="saveCustomTemplate()">บันทึกรูปแบบเทมเพลต</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', customTemplateModalHtml);
     }
 }
 
@@ -825,3 +935,332 @@ function deleteProfile(id) {
         renderActiveCampaign();
     }
 }
+
+// --- CUSTOM TEMPLATE SYSTEM LOGIC ---
+
+let modalStepCount = 0;
+
+function openCustomTemplateModal(editKey = '') {
+    const modal = document.getElementById('customTemplateModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        const titleEl = document.getElementById('tplModalTitle');
+        const keyEl = document.getElementById('editTplKey');
+        const container = document.getElementById('modalStepContainer');
+        
+        container.innerHTML = '';
+        modalStepCount = 0;
+        
+        const hasTpl = editKey && (customTemplates[editKey] || templates[editKey]);
+        if (hasTpl) {
+            const temp = customTemplates[editKey] || templates[editKey];
+            if (titleEl) titleEl.textContent = '✏️ แก้ไขรูปแบบเทมเพลต';
+            if (keyEl) keyEl.value = editKey;
+            
+            document.getElementById('tplTitle').value = temp.title;
+            document.getElementById('tplBadge').value = temp.badge || 'Custom';
+            document.getElementById('tplShowBudget').checked = temp.showBudget || false;
+            
+            temp.steps.forEach(step => {
+                addModalStepInput();
+                // Fill details for each step
+                const labelInput = document.querySelector(`#modalStepGroup_${modalStepCount} .modal-step-label`);
+                const textInput = document.querySelector(`#modalStepGroup_${modalStepCount} .modal-step-text`);
+                if (labelInput) labelInput.value = step.label;
+                
+                let text = '';
+                if (typeof step.template === 'function') {
+                    try {
+                        text = step.template('{ชื่อช่อง}', '{งบประมาณ}');
+                        // Reverse-replace current user details back to placeholders
+                        const currentUser = getCurrentUser();
+                        if (currentUser.name) text = text.replaceAll(currentUser.name, '{ชื่อคนส่ง}');
+                        if (currentUser.phone) text = text.replaceAll(currentUser.phone, '{เบอร์โทร}');
+                        if (currentUser.email) text = text.replaceAll(currentUser.email, '{อีเมล}');
+                    } catch(e) {
+                        text = '';
+                    }
+                } else {
+                    text = step.templateText || '';
+                }
+                if (textInput) textInput.value = text;
+            });
+        } else {
+            if (titleEl) titleEl.textContent = '➕ เพิ่มรูปแบบเทมเพลตใหม่';
+            if (keyEl) keyEl.value = '';
+            
+            document.getElementById('tplTitle').value = '';
+            document.getElementById('tplBadge').value = '';
+            document.getElementById('tplShowBudget').checked = false;
+            
+            // Add first step by default
+            addModalStepInput();
+        }
+    }
+}
+
+function closeCustomTemplateModal() {
+    const modal = document.getElementById('customTemplateModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function addModalStepInput() {
+    modalStepCount++;
+    const container = document.getElementById('modalStepContainer');
+    
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'modal-step-input-group';
+    stepDiv.id = `modalStepGroup_${modalStepCount}`;
+    stepDiv.style.border = '1px solid var(--border)';
+    stepDiv.style.borderRadius = '8px';
+    stepDiv.style.padding = '12px';
+    stepDiv.style.marginBottom = '10px';
+    stepDiv.style.backgroundColor = 'var(--surface3)';
+    
+    stepDiv.innerHTML = `
+        <div class="form-group" style="margin-bottom: 8px;">
+            <label style="font-weight: 600; font-size: 12.5px;">ชื่อขั้นตอนที่ ${modalStepCount}</label>
+            <input type="text" class="input-field modal-step-label" placeholder="เช่น สคริปต์เริ่มต้น หรือ ทักทายแรก" style="padding: 8px 10px; font-size: 13px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-weight: 600; font-size: 12.5px;">เนื้อหาสคริปต์</label>
+            <textarea class="input-field modal-step-text" placeholder="พิมพ์ข้อความสคริปต์ที่นี่... (ใส่ {ชื่อช่อง} หรือ {ชื่อคนส่ง} ได้)" style="min-height: 100px; padding: 10px; font-size: 13px; resize: vertical; line-height: 1.5; font-family: inherit;"></textarea>
+        </div>
+    `;
+    container.appendChild(stepDiv);
+    
+    // Toggle remove button visibility
+    const removeBtn = document.getElementById('btnRemoveModalStep');
+    if (removeBtn) {
+        removeBtn.style.display = modalStepCount > 1 ? 'inline-block' : 'none';
+    }
+}
+
+function removeModalStepInput() {
+    if (modalStepCount > 1) {
+        const stepDiv = document.getElementById(`modalStepGroup_${modalStepCount}`);
+        if (stepDiv) stepDiv.remove();
+        modalStepCount--;
+    }
+    
+    // Toggle remove button visibility
+    const removeBtn = document.getElementById('btnRemoveModalStep');
+    if (removeBtn) {
+        removeBtn.style.display = modalStepCount > 1 ? 'inline-block' : 'none';
+    }
+}
+
+function editCustomTemplate(key) {
+    openCustomTemplateModal(key);
+}
+
+function saveCustomTemplate() {
+    const title = document.getElementById('tplTitle').value.trim();
+    const badge = document.getElementById('tplBadge').value.trim() || 'Custom';
+    const showBudget = document.getElementById('tplShowBudget').checked;
+    const editKey = document.getElementById('editTplKey').value;
+    
+    if (!title) {
+        alert('กรุณากรอกชื่อรูปแบบเทมเพลต');
+        return;
+    }
+    
+    // Gather steps
+    const stepGroups = document.querySelectorAll('.modal-step-input-group');
+    const steps = [];
+    let hasEmpty = false;
+    
+    stepGroups.forEach((group, idx) => {
+        const label = group.querySelector('.modal-step-label').value.trim() || `ขั้นตอนที่ ${idx + 1}`;
+        const templateText = group.querySelector('.modal-step-text').value;
+        
+        if (!templateText.trim()) {
+            hasEmpty = true;
+        }
+        
+        steps.push({
+            label: label,
+            filename: `step-${idx + 1}.txt`,
+            templateText: templateText
+        });
+    });
+    
+    if (hasEmpty) {
+        alert('กรุณากรอกเนื้อหาสคริปต์ของทุกขั้นตอน');
+        return;
+    }
+    
+    let key = editKey;
+    const defaultList = ['sereniz', 'contact', 'gmail', 'tiktok', 'buyasset'];
+    const isDefault = defaultList.includes(key);
+    
+    if (key && (customTemplates[key] || isDefault)) {
+        // Edit existing template or override default template
+        customTemplates[key] = {
+            title: title,
+            badge: badge,
+            showBudget: showBudget,
+            steps: steps
+        };
+        showToast(isDefault ? `แก้ไขและบันทึกค่าเทมเพลตเริ่มต้น "${title}" แล้ว` : `แก้ไขเทมเพลต "${title}" สำเร็จ!`);
+    } else {
+        // Create new template
+        key = 'custom_' + Date.now();
+        customTemplates[key] = {
+            title: title,
+            badge: badge,
+            showBudget: showBudget,
+            steps: steps
+        };
+        showToast(`เพิ่มเทมเพลต "${title}" สำเร็จ!`);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+    
+    // Re-render sidebar and close modal
+    renderSidebarNavigation();
+    closeCustomTemplateModal();
+    
+    // Automatically select the template
+    selectCustomCampaign(key);
+}
+
+function deleteCustomTemplate(key) {
+    const defaultList = ['sereniz', 'contact', 'gmail', 'tiktok', 'buyasset'];
+    const isDefault = defaultList.includes(key);
+    
+    const confirmMsg = isDefault 
+        ? `คุณต้องการคืนค่าเริ่มต้นสำหรับเทมเพลต "${templates[key].title}" หรือไม่? ข้อมูลที่แก้ไขจะหายไป`
+        : `คุณแน่ใจหรือไม่ที่จะลบรูปแบบเทมเพลต "${customTemplates[key].title}"?`;
+        
+    if (confirm(confirmMsg)) {
+        const title = customTemplates[key] ? customTemplates[key].title : (templates[key] ? templates[key].title : '');
+        delete customTemplates[key];
+        localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+        showToast(isDefault ? `คืนค่าเทมเพลต "${title}" สำเร็จ` : `ลบเทมเพลต "${title}" สำเร็จ`);
+        
+        renderSidebarNavigation();
+        renderActiveCampaign();
+    }
+}
+
+function selectCustomCampaign(key) {
+    currentCampaign = key;
+    
+    const defaultList = ['sereniz', 'contact', 'gmail', 'tiktok', 'buyasset'];
+    const isDefault = defaultList.includes(key);
+    
+    if (isDefault) {
+        const isRootPage = window.location.pathname.split('/').pop().replace('.html', '') === 'index' || window.location.pathname.endsWith('/');
+        const pathPrefix = isRootPage ? 'pages/' : '';
+        const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
+        
+        if (currentPageName !== key) {
+            window.location.replace(`${pathPrefix}${key}.html`);
+            return;
+        }
+    } else {
+        window.location.hash = key;
+    }
+    
+    localStorage.setItem('global_last_campaign', key);
+    
+    // Render the dynamic navigation bar to show active highlight
+    renderSidebarNavigation();
+    
+    // Toggle budget input visibility based on campaign requirements
+    const data = customTemplates[key] || templates[key];
+    if (data) {
+        toggleBudgetField(data.showBudget);
+    }
+    
+    // Reset flow step to 0 when switching
+    currentFlowStep = 0;
+    
+    renderActiveCampaign();
+}
+
+function renderSidebarNavigation() {
+    const navList = document.querySelector('.nav-list');
+    if (!navList) return;
+
+    const isRootPage = window.location.pathname.split('/').pop().replace('.html', '') === 'index' || window.location.pathname.endsWith('/');
+    const pathPrefix = isRootPage ? 'pages/' : '';
+
+    let html = '';
+
+    const defaultList = [
+        { id: 'sereniz', label: 'Sereniz (10%)', icon: '💤' },
+        { id: 'contact', label: 'Contact (Affiliate)', icon: '📞' },
+        { id: 'gmail', label: 'Gmail Outreach', icon: '📧' },
+        { id: 'tiktok', label: 'TikTok Quick DM', icon: '💬' },
+        { id: 'buyasset', label: 'Buy Asset (ซื้อคลิป)', icon: '🪙' }
+    ];
+
+    defaultList.forEach(item => {
+        const isActive = currentCampaign === item.id;
+        const hasCustomOverride = !!customTemplates[item.id];
+        
+        html += `
+            <div class="nav-btn-container ${isActive ? 'active' : ''}">
+                <a href="${isActive ? '#' : `${pathPrefix}${item.id}.html`}" class="nav-btn" id="nav-${item.id}" onclick="${isActive ? 'event.preventDefault();' : ''}">
+                    <span class="nav-btn-icon">${item.icon}</span>
+                    <span class="nav-btn-label">${item.label}</span>
+                </a>
+                <button class="nav-action-btn" onclick="editCustomTemplate('${item.id}')" title="แก้ไขเทมเพลต">
+                    ✏️
+                </button>
+                ${hasCustomOverride ? `
+                <button class="nav-action-btn btn-reset" onclick="deleteCustomTemplate('${item.id}')" title="คืนค่าเริ่มต้น">
+                    🔄
+                </button>
+                ` : `
+                <div class="nav-action-placeholder"></div>
+                `}
+            </div>
+        `;
+    });
+
+    const customKeys = Object.keys(customTemplates);
+    if (customKeys.length > 0) {
+        html += `<div class="sidebar-divider">เทมเพลตที่เพิ่มเอง</div>`;
+        
+        customKeys.forEach(key => {
+            const temp = customTemplates[key];
+            const isActive = currentCampaign === key;
+            html += `
+                <div class="nav-btn-container ${isActive ? 'active' : ''}">
+                    <a href="#${key}" class="nav-btn" id="nav-${key}" onclick="selectCustomCampaign('${key}')">
+                        <span class="nav-btn-icon">📄</span>
+                        <span class="nav-btn-label">${esc(temp.title)}</span>
+                    </a>
+                    <button class="nav-action-btn" onclick="editCustomTemplate('${key}')" title="แก้ไขเทมเพลต">
+                        ✏️
+                    </button>
+                    <button class="nav-action-btn btn-delete" onclick="deleteCustomTemplate('${key}')" title="ลบเทมเพลต">
+                        🗑️
+                    </button>
+                </div>
+            `;
+        });
+    }
+
+    html += `
+        <button class="btn-secondary btn-add-template" onclick="openCustomTemplateModal()">
+            <span>➕ เพิ่มรูปแบบเทมเพลต</span>
+        </button>
+    `;
+
+    navList.innerHTML = html;
+}
+
+// Listen to URL hash change
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && customTemplates[hash]) {
+        selectCustomCampaign(hash);
+    }
+});
