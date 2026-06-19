@@ -35,7 +35,15 @@ const SUPABASE_URL = "https://ztgymxksjftjgssrypwi.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Z3lteGtzamZ0amdzc3J5cHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDk2MjYsImV4cCI6MjA5NzQyNTYyNn0.j3gVGNFffH_pOaJXiYFPZVauBIBoouQ7YNspoqniqkE";
 // ==========================================
 
+// ==========================================
+// GLOBAL STATE DECLARATIONS (Declared early to prevent ReferenceErrors)
+// ==========================================
+const defaultProfiles = [];
+let userProfiles = [];
+let activeProfileId = '';
+let customTemplates = {};
 let supabaseClient = null;
+
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
         const { createClient } = supabase;
@@ -44,8 +52,6 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) {
         console.error("Supabase load error: check CDN loading.", e);
     }
 }
-
-let customTemplates = {};
 function initCustomTemplates() {
     const saved = localStorage.getItem('global_custom_templates');
     if (saved) {
@@ -191,14 +197,9 @@ async function loadSupabaseTemplates() {
     }
 }
 
+// Run initialization in the correct order
+initUserProfiles();
 initCustomTemplates();
-
-
-// Default profiles for the outreach team
-const defaultProfiles = [];
-
-let userProfiles = [];
-let activeProfileId = '';
 
 function initUserProfiles() {
     const savedProfiles = localStorage.getItem('global_user_profiles');
@@ -246,8 +247,7 @@ function initUserProfiles() {
     }
 }
 
-// Run init immediately so getCurrentUser() works during parsing/rendering
-initUserProfiles();
+// (initUserProfiles is called above before custom templates)
 
 function getCurrentUser() {
     const user = userProfiles.find(p => p.id === activeProfileId);
