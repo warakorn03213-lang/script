@@ -101,6 +101,10 @@ async function loadSupabaseTemplates() {
         }
     } catch(e) {
         console.error("Error loading templates from Supabase:", e);
+        if (e && typeof e === 'object') {
+            console.log("Supabase Error Details:", JSON.stringify(e));
+            showToast("Supabase Connect Error: " + (e.message || "Unknown error"));
+        }
     }
 }
 
