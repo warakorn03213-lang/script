@@ -743,12 +743,10 @@ function saveProfile() {
         };
         userProfiles.push(newProfile);
         
-        // If it was empty, make it active
-        if (userProfiles.length === 1) {
-            activeProfileId = newProfile.id;
-            localStorage.setItem('global_active_profile_id', activeProfileId);
-        }
-        showToast('เพิ่มโปรไฟล์สำเร็จ');
+        // Auto-select the newly added profile as active
+        activeProfileId = newProfile.id;
+        localStorage.setItem('global_active_profile_id', activeProfileId);
+        showToast('เพิ่มโปรไฟล์และเลือกใช้งานสำเร็จ');
     }
 
     // Save to localStorage
@@ -763,6 +761,7 @@ function saveProfile() {
     cancelProfileEdit();
     renderModalProfileList();
     renderActiveCampaign();
+    closeUserManageModal();
 }
 
 // Set up form for editing

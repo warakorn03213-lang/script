@@ -1,0 +1,15 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/sereniz.html", "destination": "/pages/sereniz.html", "permanent": true },
+    { "source": "/contact.html", "destination": "/pages/contact.html", "permanent": true },
+    { "source": "/gmail.html", "destination": "/pages/gmail.html", "permanent": true },
+    { "source": "/tiktok.html", "destination": "/pages/tiktok.html", "permanent": true },
+    { "source": "/buyasset.html", "destination": "/pages/buyasset.html", "permanent": true },
+    { "source": "/sereniz", "destination": "/pages/sereniz.html", "permanent": true },
+    { "source": "/contact", "destination": "/pages/contact.html", "permanent": true },
+    { "source": "/gmail", "destination": "/pages/gmail.html", "permanent": true },
+    { "source": "/tiktok", "destination": "/pages/tiktok.html", "permanent": true },
+    { "source": "/buyasset", "destination": "/pages/buyasset.html", "permanent": true }
+  ]
+}
