@@ -213,19 +213,7 @@ function initUserProfiles() {
             const beforeLen = userProfiles.length;
             userProfiles = userProfiles.filter(p => p.id !== '1' && p.id !== '2' && p.id !== '3');
             
-            // Safety sanitization of old test cache data
-            let hasPersonalData = false;
-            userProfiles.forEach(p => {
-                if (p.phone === '0641607169') {
-                    p.phone = '(Line ID)';
-                    hasPersonalData = true;
-                }
-                if (p.email === 'oak@drivebrand.co.th') {
-                    p.email = 'contact@drivebrand.co.th';
-                    hasPersonalData = true;
-                }
-            });
-            if (hasPersonalData || userProfiles.length !== beforeLen) {
+            if (userProfiles.length !== beforeLen) {
                 localStorage.setItem('global_user_profiles', JSON.stringify(userProfiles));
             }
         } catch(e) {
