@@ -30,8 +30,9 @@
 // ==========================================
 // Fill in your credentials below to sync custom templates across the team.
 // Other user data (Name, Phone, Email) will remain strictly local (not synced).
-const SUPABASE_URL = ""; 
-const SUPABASE_ANON_KEY = "";
+// NOTE: Use the "anon" (public) key here, NOT the "service_role" key for security.
+const SUPABASE_URL = "https://ztgymxksjftjgssrypwi.supabase.co"; 
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Z3lteGtzamZ0amdzc3J5cHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDk2MjYsImV4cCI6MjA5NzQyNTYyNn0.j3gVGNFffH_pOaJXiYFPZVauBIBoouQ7YNspoqniqkE";
 // ==========================================
 
 let supabaseClient = null;
