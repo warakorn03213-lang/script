@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo — Drag & Drop จัดลำดับสคริปต์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07070a;
+            --sidebar-bg: #0d0d12;
+            --surface: rgba(22, 22, 28, 0.45);
+            --surface-hover: rgba(28, 28, 36, 0.6);
+            --surface3: rgba(32, 32, 42, 0.8);
+            --border: rgba(255, 255, 255, 0.04);
+            --border-hover: rgba(255, 255, 255, 0.08);
+            --text: #f4f4f7;
+            --text-muted: #a1a1aa;
+            --text-dark: #52525b;
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.08);
+            --green-border: rgba(16, 185, 129, 0.16);
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.08);
+            --accent-border: rgba(99, 102, 241, 0.16);
+            --amber: #f59e0b;
+            --amber-glow: rgba(245, 158, 11, 0.08);
+            --amber-border: rgba(245, 158, 11, 0.16);
+            --rose: #f43f5e;
+            --rose-glow: rgba(244, 63, 94, 0.08);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20%;
+            right: -15%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(16, 185, 129, 0.02) 50%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(100px);
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -20%;
+            left: -15%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.03) 0%, rgba(245, 158, 11, 0.015) 50%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(100px);
+        }
+
+        /* HERO HEADER */
+        .hero {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 80px 24px 48px;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-border);
+            color: #a5b4fc;
+            padding: 6px 16px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .hero h1 {
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #f4f4f7 30%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            animation: fadeUp 0.5s 0.1s ease both;
+        }
+
+        .hero p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 520px;
+            margin: 0 auto;
+            animation: fadeUp 0.5s 0.2s ease both;
+        }
+
+        /* FEATURE CARDS */
+        .features {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 840px;
+            margin: 0 auto 56px;
+            padding: 0 24px;
+            animation: fadeUp 0.5s 0.3s ease both;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .feature-icon.green { background: var(--green-glow); border: 1px solid var(--green-border); }
+        .feature-icon.accent { background: var(--accent-glow); border: 1px solid var(--accent-border); }
+        .feature-icon.amber { background: var(--amber-glow); border: 1px solid var(--amber-border); }
+
+        .feature-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .feature-card p {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* DEMO SECTION */
+        .demo-section {
+            position: relative;
+            z-index: 1;
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        .demo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.5s 0.4s ease both;
+        }
+
+        .demo-title-bar {
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--green), var(--accent));
+            border-radius: 4px;
+        }
+
+        .demo-title h2 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .demo-title span {
+            font-size: 12px;
+            color: var(--text-dark);
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        /* STEP BUILDER */
+        .step-builder {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            animation: fadeUp 0.5s 0.5s ease both;
+        }
+
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 100px;
+        }
+
+        /* STEP ITEM */
+        .step-item {
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+        }
+
+        .step-item:hover {
+            border-color: var(--border-hover);
+        }
+
+        .step-item.dragging {
+            opacity: 0.35;
+            transform: scale(0.97);
+            border-color: var(--accent-border) !important;
+        }
+
+        .step-item.drag-over-top {
+            border-top: 2.5px solid var(--accent) !important;
+            margin-top: -1px;
+        }
+
+        .step-item.drag-over-bottom {
+            border-bottom: 2.5px solid var(--accent) !important;
+            margin-bottom: -1px;
+        }
+
+        .step-item.drag-over-top::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 0;
+            right: 0;
+            height: 0;
+            box-shadow: 0 -6px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .step-item.drag-over-bottom::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 0;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .step-item.removing {
+            opacity: 0;
+            transform: scale(0.9) translateX(30px);
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .step-item.just-dropped {
+            animation: dropBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            font-size: 20px;
+            line-height: 1;
+            color: var(--text-dark);
+            padding: 6px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .drag-handle:hover {
+            color: var(--accent);
+            background: var(--accent-glow);
+            transform: scale(1.1);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+            color: var(--accent);
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .step-name {
+            flex: 1;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .step-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-badge.green { background: var(--green-glow); border: 1px solid var(--green-border); color: var(--green); }
+        .step-badge.accent { background: var(--accent-glow); border: 1px solid var(--accent-border); color: #a5b4fc; }
+        .step-badge.amber { background: var(--amber-glow); border: 1px solid var(--amber-border); color: var(--amber); }
+
+        .step-delete {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--text-dark);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .step-delete:hover {
+            background: var(--rose-glow);
+            color: var(--rose);
+        }
+
+        .step-preview {
+            background: rgba(255,255,255,0.01);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.65;
+            color: #d4d4d8;
+            white-space: pre-wrap;
+            max-height: 80px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .step-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(transparent, var(--surface3));
+            pointer-events: none;
+        }
+
+        .step-preview .hl {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 4px;
+            padding: 1px 4px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        .step-preview .hl-user {
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 4px;
+            padding: 1px 4px;
+            color: #a5b4fc;
+            font-weight: 500;
+        }
+
+        /* BOTTOM TOOLBAR */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-add:hover {
+            border-style: solid;
+            border-color: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.015);
+            color: var(--text);
+        }
+
+        .btn-save {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-reset {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-dark);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-reset:hover {
+            border-color: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.015);
+        }
+
+        /* STATUS COUNTER */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .status-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(18, 18, 23, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--green-glow);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--green);
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .toast-text {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* FOOTER */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: var(--text-dark);
+            border-top: 1px solid var(--border);
+        }
+
+        .footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover { color: var(--green); }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes dropBounce {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 720px) {
+            .features { grid-template-columns: 1fr; max-width: 400px; }
+            .hero { padding: 48px 20px 32px; }
+            .hero h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            ฟีเจอร์ใหม่ — Outreach Hub v2
+        </div>
+        <h1>ลากจัดลำดับสคริปต์<br>ได้อิสระตามต้องการ</h1>
+        <p>เปลี่ยนลำดับขั้นตอนสคริปต์ในหน้าแก้ไขเทมเพลตได้ทันทีเพียงลากวาง — ไม่ต้องลบแล้วสร้างใหม่อีกต่อไป</p>
+    </section>
+
+    <!-- FEATURE HIGHLIGHTS -->
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon green">⠿</div>
+            <h3>ลากวางอิสระ</h3>
+            <p>จับ handle แล้วลากไปตำแหน่งไหนก็ได้ — เลขลำดับอัปเดตอัตโนมัติ</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon accent">📱</div>
+            <h3>รองรับมือถือ</h3>
+            <p>ใช้งาน touch drag ได้บนมือถือและแท็บเล็ตโดยไม่ต้องเปลี่ยนมุมมอง</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon amber">✕</div>
+            <h3>ลบรายตัวได้</h3>
+            <p>กดลบเฉพาะขั้นตอนที่ต้องการ — ไม่จำเป็นต้องลบจากท้ายสุดอีกแล้ว</p>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE DEMO -->
+    <section class="demo-section">
+        <div class="demo-title">
+            <div class="demo-title-bar"></div>
+            <h2>ลองเล่นจริง — ลากเปลี่ยนลำดับได้เลย</h2>
+            <span id="moveCounter">0 ครั้งที่ย้าย</span>
+        </div>
+
+        <div class="step-builder">
+            <div class="status-bar">
+                <span class="status-text">ขั้นตอนสคริปต์ทั้งหมด</span>
+                <span class="status-count" id="stepCount">5 ขั้นตอน</span>
+            </div>
+
+            <div class="step-container" id="stepContainer">
+                <!-- Generated by JS -->
+            </div>
+
+            <div class="toolbar">
+                <button class="btn-add" onclick="addStep()">➕ เพิ่มขั้นตอน</button>
+                <button class="btn-reset" onclick="resetSteps()">🔄 รีเซ็ต</button>
+                <button class="btn-save" onclick="showToast('บันทึกเรียบร้อย! ลำดับขั้นตอนถูกเปลี่ยนแล้ว')">💾 บันทึก</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-text" id="toastText"></div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        Outreach Hub — <a href="pages/sereniz.html">กลับหน้าหลัก ↗</a>
+    </footer>
+
+<script>
+// Demo data
+const demoSteps = [
+    { name: 'แนะนำตัว (Introduction)', badge: 'เริ่มต้น', badgeClass: 'green',
+      preview: 'สวัสดีครับ ขออนุญาตแนะนำตัวนะครับ <span class="hl-user">โอ๊ค</span> จากบริษัทไดร์ฟจำกัด\n\n<span class="hl-user">โอ๊ค</span> ติดตามมาจากช่อง <span class="hl">(ชื่อช่อง)</span> ทาง Tiktok ครับ' },
+    { name: 'รายละเอียดสินค้า (Product Details)', badge: 'ข้อมูล', badgeClass: 'accent',
+      preview: 'ตัวนี้จะเป็น แม็กนีเซียมปรับสมดุลการนอนครับ เป็นสินค้าตัวใหม่ของทางแบรนด์ครับ 🙏🏻🙇🏻' },
+    { name: 'ข้อเสนอพิเศษ (Special Offer)', badge: 'ข้อเสนอ', badgeClass: 'amber',
+      preview: 'ทางเราจึงมีข้อเสนอเป็นส่วนแบ่งยอดขาย 10% 📌 ทางเราจะจัดส่งสินค้าไปให้ใช้ก่อน(ฟรี)\n\n📸 รีวิว สไตล์คุณ ได้เลยเต็มที่' },
+    { name: 'ปิดท้าย (Closing)', badge: 'สรุป', badgeClass: 'green',
+      preview: 'ผมแจ้งรายละเอียดครบแล้วนะครับ หากสนใจผมสามารถส่งคำเชิญสินค้าให้ได้เลยนะครับ ขอบคุณมากๆครับ 🥰🙏🏻🙇🏻' },
+    { name: 'ลิงก์สินค้า (Product Link)', badge: 'ลิงก์', badgeClass: 'accent',
+      preview: 'https://vt.tiktok.com/ZSmLS9141/\nhttps://vt.tiktok.com/ZSmX2r8aa/' },
+];
+
+let steps = [...demoSteps];
+let moveCount = 0;
+let draggedEl = null;
+
+function renderSteps() {
+    const container = document.getElementById('stepContainer');
+    container.innerHTML = '';
+
+    steps.forEach((step, idx) => {
+        const div = document.createElement('div');
+        div.className = 'step-item';
+        div.dataset.index = idx;
+
+        div.innerHTML = `
+            <div class="step-header">
+                <div class="drag-handle" title="ลากเพื่อเปลี่ยนลำดับ">⠿</div>
+                <div class="step-number">${idx + 1}</div>
+                <div class="step-name">${step.name}</div>
+                <span class="step-badge ${step.badgeClass}">${step.badge}</span>
+                <button class="step-delete" onclick="deleteStep(${idx})" title="ลบขั้นตอนนี้">✕</button>
+            </div>
+            <div class="step-preview">${step.preview}</div>
+        `;
+
+        // Drag events
+        const handle = div.querySelector('.drag-handle');
+        handle.addEventListener('mousedown', () => div.setAttribute('draggable', 'true'));
+        div.addEventListener('mouseup', () => div.removeAttribute('draggable'));
+
+        div.addEventListener('dragstart', function(e) {
+            draggedEl = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', idx);
+            requestAnimationFrame(() => { if (draggedEl) draggedEl.style.opacity = '0.35'; });
+        });
+
+        div.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            this.style.opacity = '1';
+            this.removeAttribute('draggable');
+            container.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            draggedEl = null;
+        });
+
+        div.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (!draggedEl || this === draggedEl) return;
+            const rect = this.getBoundingClientRect();
+            const mid = rect.top + rect.height / 2;
+            if (e.clientY < mid) {
+                this.classList.add('drag-over-top');
+                this.classList.remove('drag-over-bottom');
+            } else {
+                this.classList.add('drag-over-bottom');
+                this.classList.remove('drag-over-top');
+            }
+        });
+
+        div.addEventListener('dragenter', e => e.preventDefault());
+        div.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
+
+        div.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!draggedEl || this === draggedEl) return;
+
+            const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+            const toIdx = parseInt(this.dataset.index);
+            const rect = this.getBoundingClientRect();
+            const mid = rect.top + rect.height / 2;
+            const insertBefore = e.clientY < mid;
+
+            const [moved] = steps.splice(fromIdx, 1);
+            let newIdx = toIdx;
+            if (fromIdx < toIdx) newIdx--;
+            if (!insertBefore) newIdx++;
+            steps.splice(newIdx, 0, moved);
+
+            moveCount++;
+            document.getElementById('moveCounter').textContent = `${moveCount} ครั้งที่ย้าย`;
+
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+            renderSteps();
+            showToast(`ย้ายขั้นตอน "${moved.name.split(' (')[0]}" สำเร็จ`);
+
+            // Bounce animation on dropped item
+            const newEl = container.children[newIdx];
+            if (newEl) {
+                newEl.classList.add('just-dropped');
+                setTimeout(() => newEl.classList.remove('just-dropped'), 500);
+            }
+        });
+
+        // Touch events
+        handle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = div.getBoundingClientRect();
+
+            div.classList.add('dragging');
+            const clone = div.cloneNode(true);
+            clone.id = 'touchClone';
+            clone.style.cssText = `
+                position:fixed; left:${rect.left}px; top:${rect.top}px;
+                width:${rect.width}px; z-index:10000; opacity:0.88;
+                pointer-events:none; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+                border:1px solid var(--accent); border-radius:12px;
+                background:var(--surface3); transform:scale(1.02);
+            `;
+            document.body.appendChild(clone);
+
+            const offsetY = touch.clientY - rect.top;
+            const fromIdx = idx;
+
+            function onTouchMove(ev) {
+                ev.preventDefault();
+                const t = ev.touches[0];
+                clone.style.top = (t.clientY - offsetY) + 'px';
+
+                container.querySelectorAll('.step-item').forEach(item => {
+                    item.classList.remove('drag-over-top', 'drag-over-bottom');
+                    if (item === div) return;
+                    const r = item.getBoundingClientRect();
+                    if (t.clientY >= r.top && t.clientY <= r.bottom) {
+                        const m = r.top + r.height / 2;
+                        item.classList.add(t.clientY < m ? 'drag-over-top' : 'drag-over-bottom');
+                    }
+                });
+            }
+
+            function onTouchEnd() {
+                let dropTarget = null, insertBefore = true;
+                container.querySelectorAll('.step-item').forEach(item => {
+                    if (item.classList.contains('drag-over-top')) { dropTarget = item; insertBefore = true; }
+                    else if (item.classList.contains('drag-over-bottom')) { dropTarget = item; insertBefore = false; }
+                    item.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+
+                if (dropTarget && dropTarget !== div) {
+                    const toIdx = parseInt(dropTarget.dataset.index);
+                    const [moved] = steps.splice(fromIdx, 1);
+                    let newIdx = toIdx;
+                    if (fromIdx < toIdx) newIdx--;
+                    if (!insertBefore) newIdx++;
+                    steps.splice(newIdx, 0, moved);
+                    moveCount++;
+                    document.getElementById('moveCounter').textContent = `${moveCount} ครั้งที่ย้าย`;
+                    renderSteps();
+                    showToast(`ย้ายขั้นตอน "${moved.name.split(' (')[0]}" สำเร็จ`);
+                }
+
+                div.classList.remove('dragging');
+                clone.remove();
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', onTouchEnd);
+            }
+
+            document.addEventListener('touchmove', onTouchMove, { passive: false });
+            document.addEventListener('touchend', onTouchEnd);
+        }, { passive: false });
+
+        container.appendChild(div);
+    });
+
+    document.getElementById('stepCount').textContent = `${steps.length} ขั้นตอน`;
+}
+
+function deleteStep(idx) {
+    if (steps.length <= 1) { showToast('ต้องมีอย่างน้อย 1 ขั้นตอน'); return; }
+    const name = steps[idx].name.split(' (')[0];
+    const el = document.getElementById('stepContainer').children[idx];
+    el.classList.add('removing');
+    setTimeout(() => {
+        steps.splice(idx, 1);
+        renderSteps();
+        showToast(`ลบขั้นตอน "${name}" แล้ว`);
+    }, 250);
+}
+
+function addStep() {
+    const n = steps.length + 1;
+    const badges = ['green', 'accent', 'amber'];
+    const badgeNames = ['ข้อมูล', 'สคริปต์', 'เพิ่มเติม'];
+    const r = n % 3;
+    steps.push({
+        name: `ขั้นตอนใหม่ที่ ${n}`,
+        badge: badgeNames[r],
+        badgeClass: badges[r],
+        preview: 'พิมพ์ข้อความสคริปต์ของคุณที่นี่...'
+    });
+    renderSteps();
+    showToast('เพิ่มขั้นตอนใหม่แล้ว');
+    const container = document.getElementById('stepContainer');
+    container.lastChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function resetSteps() {
+    steps = [...demoSteps];
+    moveCount = 0;
+    document.getElementById('moveCounter').textContent = '0 ครั้งที่ย้าย';
+    renderSteps();
+    showToast('รีเซ็ตเรียบร้อย');
+}
+
+let toastTimer;
+function showToast(msg) {
+    clearTimeout(toastTimer);
+    const toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// Init
+renderSteps();
+</script>
+
+</body>
+</html>
