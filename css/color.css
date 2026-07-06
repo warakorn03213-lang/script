@@ -1,15 +1,15 @@
 :root {
-    /* X (Twitter) Dark Mode — Lights Out */
-    --bg: #000000;
-    --sidebar-bg: #000000;
-    --surface: #16181C;
-    --surface-hover: #1D1F23;
-    --surface3: #202327;
-    --border: #2F3336;
-    --border-hover: #3E4144;
-    --text: #E7E9EA;
-    --text-muted: #71767B;
-    --text-dark: #536471;
+    /* X (Twitter) Dark Mode — Dim */
+    --bg: #15202B;
+    --sidebar-bg: #15202B;
+    --surface: #192734;
+    --surface-hover: #22303C;
+    --surface3: #253341;
+    --border: #38444D;
+    --border-hover: #4B5A66;
+    --text: #FFFFFF;
+    --text-muted: #8899A6;
+    --text-dark: #6E767D;
     --green: #00BA7C;
     --green-glow: rgba(0, 186, 124, 0.1);
     --green-border: rgba(0, 186, 124, 0.25);
@@ -36,11 +36,11 @@
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #2F3336;
+    background: #38444D;
     border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #3E4144;
+    background: #4B5A66;
 }
 
 body {
