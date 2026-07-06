@@ -1193,3 +1193,128 @@ body::before {
     background-color: rgba(255, 255, 255, 0.015) !important;
     color: var(--text) !important;
 }
+
+/* --- DRAG & DROP STEP REORDERING --- */
+
+.modal-step-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-step-drag-handle {
+    cursor: grab;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-dark);
+    padding: 4px 6px;
+    border-radius: 6px;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: color 0.2s, background-color 0.2s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.modal-step-drag-handle:hover {
+    color: var(--accent);
+    background-color: var(--accent-glow);
+    transform: scale(1.15);
+}
+
+.modal-step-drag-handle:active {
+    cursor: grabbing;
+    color: var(--accent);
+}
+
+.modal-step-number-label {
+    flex: 1;
+    color: var(--text);
+}
+
+.modal-step-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-dark);
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.modal-step-delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Drag states */
+.modal-step-input-group {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+
+.modal-step-input-group.step-dragging {
+    opacity: 0.4 !important;
+    transform: scale(0.97);
+    box-shadow: none;
+    border-color: var(--accent-border) !important;
+}
+
+.modal-step-input-group.step-drag-over-top {
+    border-top: 2.5px solid var(--accent) !important;
+    padding-top: 10px;
+}
+
+.modal-step-input-group.step-drag-over-bottom {
+    border-bottom: 2.5px solid var(--accent) !important;
+    padding-bottom: 10px;
+}
+
+.modal-step-input-group.step-drag-over-top::before,
+.modal-step-input-group.step-drag-over-bottom::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.modal-step-input-group.step-drag-over-top::before {
+    top: -2px;
+    box-shadow: 0 -4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.modal-step-input-group.step-drag-over-bottom::after {
+    bottom: -2px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+/* Step removal animation */
+.modal-step-input-group.step-removing {
+    opacity: 0;
+    transform: scale(0.9) translateX(20px);
+    pointer-events: none;
+}
+
+/* Drag placeholder */
+.step-drag-placeholder {
+    background: var(--accent-glow);
+    border: 2px dashed var(--accent-border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: height 0.2s ease;
+}
+
+/* Touch clone */
+.step-touch-clone {
+    padding: 12px !important;
+}

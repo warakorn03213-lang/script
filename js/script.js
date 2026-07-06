@@ -1163,8 +1163,13 @@ function addModalStepInput() {
     stepDiv.style.backgroundColor = 'var(--surface3)';
     
     stepDiv.innerHTML = `
+        <div class="modal-step-header">
+            <div class="modal-step-drag-handle" title="ลากเพื่อเปลี่ยนลำดับ">⠿</div>
+            <span class="modal-step-number-label" style="font-weight: 600; font-size: 12.5px;">ขั้นตอนที่ ${modalStepCount}</span>
+            <button type="button" class="modal-step-delete-btn" onclick="deleteModalStepByEl(this)" title="ลบขั้นตอนนี้">✕</button>
+        </div>
         <div class="form-group" style="margin-bottom: 8px;">
-            <label style="font-weight: 600; font-size: 12.5px;">ชื่อขั้นตอนที่ ${modalStepCount}</label>
+            <label style="font-weight: 600; font-size: 12.5px;">ชื่อขั้นตอน</label>
             <input type="text" class="input-field modal-step-label" placeholder="เช่น สคริปต์เริ่มต้น หรือ ทักทายแรก" style="padding: 8px 10px; font-size: 13px;">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
@@ -1174,11 +1179,11 @@ function addModalStepInput() {
     `;
     container.appendChild(stepDiv);
     
-    // Toggle remove button visibility
-    const removeBtn = document.getElementById('btnRemoveModalStep');
-    if (removeBtn) {
-        removeBtn.style.display = modalStepCount > 1 ? 'inline-block' : 'none';
-    }
+    // Bind drag events to this step
+    bindStepDragEvents(stepDiv);
+    
+    // Update remove button visibility and renumber
+    updateModalStepControls();
 }
 
 function removeModalStepInput() {
@@ -1187,12 +1192,284 @@ function removeModalStepInput() {
         if (stepDiv) stepDiv.remove();
         modalStepCount--;
     }
-    
-    // Toggle remove button visibility
+    updateModalStepControls();
+}
+
+function deleteModalStepByEl(btn) {
+    const container = document.getElementById('modalStepContainer');
+    const allSteps = container.querySelectorAll('.modal-step-input-group');
+    if (allSteps.length <= 1) {
+        showToast('ต้องมีอย่างน้อย 1 ขั้นตอน');
+        return;
+    }
+    const stepDiv = btn.closest('.modal-step-input-group');
+    if (stepDiv) {
+        stepDiv.classList.add('step-removing');
+        setTimeout(() => {
+            stepDiv.remove();
+            modalStepCount--;
+            renumberModalSteps();
+            updateModalStepControls();
+        }, 200);
+    }
+}
+
+function updateModalStepControls() {
     const removeBtn = document.getElementById('btnRemoveModalStep');
     if (removeBtn) {
         removeBtn.style.display = modalStepCount > 1 ? 'inline-block' : 'none';
     }
+    // Hide per-step delete buttons if only 1 step remains
+    const container = document.getElementById('modalStepContainer');
+    if (container) {
+        const allDelBtns = container.querySelectorAll('.modal-step-delete-btn');
+        allDelBtns.forEach(btn => {
+            btn.style.display = modalStepCount > 1 ? 'flex' : 'none';
+        });
+    }
+}
+
+function renumberModalSteps() {
+    const container = document.getElementById('modalStepContainer');
+    if (!container) return;
+    const allSteps = container.querySelectorAll('.modal-step-input-group');
+    allSteps.forEach((step, idx) => {
+        step.id = `modalStepGroup_${idx + 1}`;
+        const numLabel = step.querySelector('.modal-step-number-label');
+        if (numLabel) numLabel.textContent = `ขั้นตอนที่ ${idx + 1}`;
+    });
+    modalStepCount = allSteps.length;
+}
+
+// --- DRAG AND DROP REORDER FOR TEMPLATE STEPS ---
+
+let draggedStep = null;
+let dragPlaceholder = null;
+
+function bindStepDragEvents(stepEl) {
+    // Drag target events (fire on the draggable element)
+    stepEl.addEventListener('dragstart', handleStepDragStart);
+    stepEl.addEventListener('dragend', handleStepDragEnd);
+    
+    // Drop zone events (fire on potential drop targets)
+    stepEl.addEventListener('dragover', handleStepDragOver);
+    stepEl.addEventListener('dragenter', handleStepDragEnter);
+    stepEl.addEventListener('dragleave', handleStepDragLeave);
+    stepEl.addEventListener('drop', handleStepDrop);
+    
+    // Enable dragging ONLY when mousedown on the drag handle
+    const handle = stepEl.querySelector('.modal-step-drag-handle');
+    if (handle) {
+        handle.addEventListener('mousedown', function() {
+            stepEl.setAttribute('draggable', 'true');
+        });
+        
+        // Touch support for mobile
+        handle.addEventListener('touchstart', handleTouchStart, { passive: false });
+    }
+    
+    // Remove draggable on mouseup (to keep inputs editable)
+    stepEl.addEventListener('mouseup', function() {
+        stepEl.removeAttribute('draggable');
+    });
+}
+
+function handleStepDragStart(e) {
+    draggedStep = this;
+    this.classList.add('step-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.id);
+    
+    // Delay to allow the drag image to render
+    requestAnimationFrame(() => {
+        if (draggedStep) {
+            draggedStep.style.opacity = '0.4';
+        }
+    });
+}
+
+function handleStepDragEnd(e) {
+    this.classList.remove('step-dragging');
+    this.style.opacity = '1';
+    this.removeAttribute('draggable');
+    
+    // Remove placeholder
+    if (dragPlaceholder && dragPlaceholder.parentNode) {
+        dragPlaceholder.remove();
+    }
+    
+    // Remove all drag-over classes
+    const container = document.getElementById('modalStepContainer');
+    if (container) {
+        container.querySelectorAll('.step-drag-over-top, .step-drag-over-bottom').forEach(el => {
+            el.classList.remove('step-drag-over-top', 'step-drag-over-bottom');
+        });
+    }
+    
+    draggedStep = null;
+    dragPlaceholder = null;
+    
+    renumberModalSteps();
+}
+
+function handleStepDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (!draggedStep || this === draggedStep) return;
+    
+    const rect = this.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    
+    if (e.clientY < midY) {
+        this.classList.add('step-drag-over-top');
+        this.classList.remove('step-drag-over-bottom');
+    } else {
+        this.classList.add('step-drag-over-bottom');
+        this.classList.remove('step-drag-over-top');
+    }
+}
+
+function handleStepDragEnter(e) {
+    e.preventDefault();
+}
+
+function handleStepDragLeave(e) {
+    this.classList.remove('step-drag-over-top', 'step-drag-over-bottom');
+}
+
+function handleStepDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!draggedStep || this === draggedStep) return;
+    
+    const container = document.getElementById('modalStepContainer');
+    const rect = this.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    
+    if (e.clientY < midY) {
+        container.insertBefore(draggedStep, this);
+    } else {
+        container.insertBefore(draggedStep, this.nextSibling);
+    }
+    
+    this.classList.remove('step-drag-over-top', 'step-drag-over-bottom');
+    
+    renumberModalSteps();
+    showToast('เปลี่ยนลำดับขั้นตอนแล้ว');
+}
+
+// --- TOUCH DRAG SUPPORT FOR MOBILE ---
+
+let touchDragEl = null;
+let touchClone = null;
+let touchStartY = 0;
+let touchOffsetY = 0;
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    const stepEl = this.closest('.modal-step-input-group');
+    if (!stepEl) return;
+    
+    touchDragEl = stepEl;
+    const touch = e.touches[0];
+    const rect = stepEl.getBoundingClientRect();
+    touchStartY = touch.clientY;
+    touchOffsetY = touch.clientY - rect.top;
+    
+    stepEl.classList.add('step-dragging');
+    
+    // Create a floating clone
+    touchClone = stepEl.cloneNode(true);
+    touchClone.className = 'modal-step-input-group step-touch-clone';
+    touchClone.style.cssText = `
+        position: fixed;
+        left: ${rect.left}px;
+        top: ${rect.top}px;
+        width: ${rect.width}px;
+        z-index: 10000;
+        opacity: 0.85;
+        pointer-events: none;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background-color: var(--surface3);
+        transform: scale(1.02);
+    `;
+    document.body.appendChild(touchClone);
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    if (!touchDragEl || !touchClone) return;
+    
+    const touch = e.touches[0];
+    touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+    
+    // Find the element under the touch
+    const container = document.getElementById('modalStepContainer');
+    const allSteps = container.querySelectorAll('.modal-step-input-group');
+    
+    allSteps.forEach(step => {
+        step.classList.remove('step-drag-over-top', 'step-drag-over-bottom');
+        if (step === touchDragEl) return;
+        
+        const rect = step.getBoundingClientRect();
+        if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+            const midY = rect.top + rect.height / 2;
+            if (touch.clientY < midY) {
+                step.classList.add('step-drag-over-top');
+            } else {
+                step.classList.add('step-drag-over-bottom');
+            }
+        }
+    });
+}
+
+function handleTouchEnd(e) {
+    if (!touchDragEl) return;
+    
+    const container = document.getElementById('modalStepContainer');
+    const allSteps = container.querySelectorAll('.modal-step-input-group');
+    
+    let dropTarget = null;
+    let insertBefore = true;
+    
+    allSteps.forEach(step => {
+        if (step.classList.contains('step-drag-over-top')) {
+            dropTarget = step;
+            insertBefore = true;
+        } else if (step.classList.contains('step-drag-over-bottom')) {
+            dropTarget = step;
+            insertBefore = false;
+        }
+        step.classList.remove('step-drag-over-top', 'step-drag-over-bottom');
+    });
+    
+    if (dropTarget && dropTarget !== touchDragEl) {
+        if (insertBefore) {
+            container.insertBefore(touchDragEl, dropTarget);
+        } else {
+            container.insertBefore(touchDragEl, dropTarget.nextSibling);
+        }
+        renumberModalSteps();
+        showToast('เปลี่ยนลำดับขั้นตอนแล้ว');
+    }
+    
+    touchDragEl.classList.remove('step-dragging');
+    if (touchClone && touchClone.parentNode) {
+        touchClone.remove();
+    }
+    
+    touchDragEl = null;
+    touchClone = null;
+    
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleTouchEnd);
 }
 
 function editCustomTemplate(key) {
