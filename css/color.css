@@ -1,21 +1,22 @@
 :root {
-    --bg: #07070a;
-    --sidebar-bg: #0d0d12;
-    --surface: rgba(22, 22, 28, 0.45);
-    --surface-hover: rgba(28, 28, 36, 0.6);
-    --surface3: rgba(32, 32, 42, 0.8);
-    --border: rgba(255, 255, 255, 0.04);
-    --border-hover: rgba(255, 255, 255, 0.08);
-    --text: #f4f4f7;
-    --text-muted: #a1a1aa;
-    --text-dark: #52525b;
-    --green: #10b981;
-    --green-glow: rgba(16, 185, 129, 0.08);
-    --green-border: rgba(16, 185, 129, 0.16);
-    --accent: #6366f1;
-    --accent-glow: rgba(99, 102, 241, 0.08);
-    --accent-border: rgba(99, 102, 241, 0.16);
-    --glow-color: rgba(99, 102, 241, 0.02);
+    /* X (Twitter) Dark Mode — Lights Out */
+    --bg: #000000;
+    --sidebar-bg: #000000;
+    --surface: #16181C;
+    --surface-hover: #1D1F23;
+    --surface3: #202327;
+    --border: #2F3336;
+    --border-hover: #3E4144;
+    --text: #E7E9EA;
+    --text-muted: #71767B;
+    --text-dark: #536471;
+    --green: #00BA7C;
+    --green-glow: rgba(0, 186, 124, 0.1);
+    --green-border: rgba(0, 186, 124, 0.25);
+    --accent: #1D9BF0;
+    --accent-glow: rgba(29, 155, 240, 0.1);
+    --accent-border: rgba(29, 155, 240, 0.25);
+    --glow-color: rgba(29, 155, 240, 0.02);
 }
 
 *,
@@ -35,17 +36,17 @@
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.08);
+    background: #2F3336;
     border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.16);
+    background: #3E4144;
 }
 
 body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
     height: 100vh;
     overflow: hidden;
     display: flex;
@@ -62,10 +63,10 @@ body::before {
     right: -10%;
     width: 60%;
     height: 60%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.03) 0%, rgba(16, 185, 129, 0.01) 50%, transparent 100%);
+    background: radial-gradient(circle, rgba(29, 155, 240, 0.025) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
-    filter: blur(80px);
+    filter: blur(85px);
 }
 
 /* APP LAYOUT SPLIT-SCREEN */
