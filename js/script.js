@@ -606,7 +606,7 @@ function renderActiveCampaign() {
 
     const titleEl = document.getElementById('activeCampaignTitle');
     if (titleEl) {
-        titleEl.innerHTML = `${data.title} <span class="campaign-badge">${data.badge}</span>`;
+        titleEl.innerHTML = `<span class="campaign-title-text">${data.title}</span><span class="campaign-badge">${data.badge}</span>`;
     }
 
     const container = document.getElementById('scriptCardsContainer');

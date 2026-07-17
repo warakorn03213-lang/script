@@ -290,6 +290,13 @@ body::before {
     z-index: 5;
 }
 
+.campaign-info {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+}
+
 .campaign-info h1 {
     font-family: var(--font-display);
     font-size: 18px;
@@ -298,7 +305,15 @@ body::before {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
     color: var(--text);
+}
+
+.campaign-title-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .campaign-badge {
@@ -310,6 +325,7 @@ body::before {
     border-radius: 4px;
     font-weight: 600;
     text-transform: uppercase;
+    flex-shrink: 0;
 }
 
 /* Header Controls & Progress */
@@ -928,17 +944,45 @@ body::before {
         max-width: none;
     }
 
+    .hamburger-btn {
+        width: 32px;
+        height: 32px;
+    }
+
     .workspace-header {
-        padding: 16px 18px;
+        padding: 10px 14px;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 8px 22px;
+    }
+
+    .campaign-info h1 {
+        font-size: 15px;
+        gap: 6px;
     }
 
     .header-controls {
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 8px;
         width: 100%;
         justify-content: space-between;
+    }
+
+    .view-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .progress-indicator {
+        gap: 8px;
+        padding: 5px 10px;
+    }
+
+    .progress-label {
+        font-size: 10px;
+    }
+
+    .progress-bar-container {
+        width: 56px;
     }
 
     .workspace-scroll {
@@ -1024,8 +1068,33 @@ body.sidebar-lock {
         padding: 16px 18px;
     }
 
+    .hamburger-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .workspace-header {
+        padding: 8px 12px;
+        gap: 6px 20px;
+    }
+
     .campaign-info h1 {
-        font-size: 15.5px;
+        font-size: 13.5px;
+        gap: 5px;
+    }
+
+    .campaign-badge {
+        font-size: 8.5px;
+        padding: 1px 5px;
+    }
+
+    .header-controls {
+        gap: 6px;
+    }
+
+    .view-btn {
+        padding: 4px 8px;
+        font-size: 10.5px;
     }
 
     .workspace-scroll {
@@ -1033,12 +1102,16 @@ body.sidebar-lock {
     }
 
     .progress-indicator {
-        gap: 8px;
-        padding: 6px 10px;
+        gap: 6px;
+        padding: 4px 8px;
+    }
+
+    .progress-label {
+        font-size: 9.5px;
     }
 
     .progress-bar-container {
-        width: 60px;
+        width: 44px;
     }
 
     .card-header {
