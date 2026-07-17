@@ -950,7 +950,7 @@ body::before {
     }
 
     .workspace-header {
-        padding: 10px 14px;
+        padding: 10px 10px;
         flex-wrap: wrap;
         gap: 8px 22px;
     }
@@ -1074,7 +1074,7 @@ body.sidebar-lock {
     }
 
     .workspace-header {
-        padding: 8px 12px;
+        padding: 8px 8px;
         gap: 6px 20px;
     }
 
