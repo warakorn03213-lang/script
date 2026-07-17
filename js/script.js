@@ -252,7 +252,7 @@ function getCurrentUser() {
 // Database of outreach templates
 const templates = {
     sereniz: {
-        title: "💤 Sereniz Outreach (Commission 10%)",
+        title: "💤 Sereniz Drive (Commission 10%)",
         badge: "TikTok Shop",
         showBudget: false,
         steps: [
@@ -291,7 +291,7 @@ const templates = {
         ]
     },
     gmail: {
-        title: "📧 Gmail Outreach Letter",
+        title: "📧 Gmail Drive Letter",
         badge: "Email Business",
         showBudget: false,
         steps: [
@@ -366,8 +366,153 @@ let checkedStates = {};
 let viewMode = 'grid';
 let currentFlowStep = 0;
 
+// Build the shared app shell (sidebar + workspace + toast) once per page load.
+// Keeping this markup in one place means brand/label edits only ever touch this function.
+function renderAppShell() {
+    if (document.querySelector('.app-layout')) return;
+
+    document.body.insertAdjacentHTML('afterbegin', `
+        <div class="app-layout">
+            <aside class="sidebar">
+                <div class="brand-header">
+                    <div class="brand-logo">D</div>
+                    <div class="brand-info">
+                        <h2>Drive Hub</h2>
+                        <p>Drive Brand Co., Ltd.</p>
+                    </div>
+                </div>
+
+                <div class="sidebar-scroll">
+                    <div class="control-group">
+                        <div class="control-title">
+                            <span class="control-title-bar"></span>
+                            ข้อมูลช่อง/ราคา
+                        </div>
+
+                        <div class="input-wrapper">
+                            <span class="input-icon">🎵</span>
+                            <input class="input-field" id="sidebarChannel" type="text" placeholder="ระบุชื่อช่อง TikTok" oninput="handleInputSync(this, 'channel')">
+                        </div>
+
+                        <div class="input-wrapper" id="budgetInputContainer">
+                            <span class="input-icon">💰</span>
+                            <input class="input-field" id="sidebarBudget" type="text" placeholder="ระบุงบประมาณ (เช่น 500)" oninput="handleInputSync(this, 'budget')">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-title">
+                            <span class="control-title-bar"></span>
+                            รูปแบบเทมเพลต (Templates)
+                        </div>
+
+                        <div class="nav-list"></div>
+                    </div>
+
+                    <div class="info-card">
+                        <strong>💡 คำแนะนำเพิ่มเติม:</strong><br>
+                        1. คุณสามารถพิมพ์แก้ไขสคริปต์บนหน้าเว็บได้ทันทีก่อนคัดลอก<br>
+                        2. เปลี่ยนเป็น <strong>แบบ Flow (ทีละขั้นตอน)</strong> ที่มุมขวาบน เพื่อคัดลอกข้อความทีละเสต็ปได้อย่างสะดวกรวดเร็วโดยไม่ต้องเลื่อนจอ
+                    </div>
+                </div>
+            </aside>
+
+            <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+            <main class="workspace">
+                <header class="workspace-header">
+                    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="เปิด/ปิดเมนู">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <div class="campaign-info">
+                        <h1 id="activeCampaignTitle"></h1>
+                    </div>
+
+                    <div class="header-controls">
+                        <div class="view-toggle">
+                            <button class="view-btn" id="view-grid-btn" onclick="setViewMode('grid')">แบบตาราง</button>
+                            <button class="view-btn" id="view-flow-btn" onclick="setViewMode('flow')">ทีละขั้นตอน</button>
+                        </div>
+
+                        <div class="progress-indicator">
+                            <span class="progress-label" id="progressText">สถานะ: ส่งไปแล้ว 0/0 ขั้นตอน</span>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="workspace-scroll">
+                    <div class="flow-stepper" id="flowStepperContainer" style="display: none;"></div>
+                    <div class="cards-grid" id="scriptCardsContainer"></div>
+                </div>
+            </main>
+        </div>
+
+        <div id="toast" class="toast">
+            <div class="toast-icon">✓</div>
+            <div class="toast-text" id="toastText">คัดลอกข้อความแล้ว</div>
+        </div>
+    `);
+}
+
+// Sidebar toggle: an off-canvas drawer on mobile/tablet, a collapse-to-icon-rail on desktop.
+// Same button, same handler — which behavior applies depends on viewport width at click time,
+// so it stays correct even if the window is resized without a reload.
+const SIDEBAR_MOBILE_QUERY = '(max-width: 860px)';
+
+function toggleSidebar() {
+    if (window.matchMedia(SIDEBAR_MOBILE_QUERY).matches) {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar) return;
+        if (sidebar.classList.contains('open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    } else {
+        toggleSidebarCollapse();
+    }
+}
+
+function openSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar) sidebar.classList.add('open');
+    if (backdrop) backdrop.classList.add('show');
+    document.body.classList.add('sidebar-lock');
+}
+
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('sidebar-lock');
+}
+
+function toggleSidebarCollapse() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    const collapsed = sidebar.classList.toggle('collapsed');
+    localStorage.setItem('global_sidebar_collapsed', collapsed ? 'true' : 'false');
+}
+
+function restoreSidebarCollapseState() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    if (localStorage.getItem('global_sidebar_collapsed') === 'true') {
+        sidebar.classList.add('collapsed');
+    }
+}
+
 // Initialize on window load
 window.addEventListener('DOMContentLoaded', () => {
+    // Build the shared sidebar/workspace/toast markup before anything else touches the DOM
+    renderAppShell();
+    restoreSidebarCollapseState();
+
     // Determine campaign from filename or hash
     currentCampaign = getPageId();
 
@@ -753,6 +898,9 @@ function copyCardText(idx, advanceStep = false) {
                 }, 800);
             }
         }
+    }).catch((e) => {
+        console.error("Clipboard write failed:", e);
+        showToast("คัดลอกไม่สำเร็จ กรุณาลองเลือกข้อความแล้วคัดลอกเอง (Ctrl+C)");
     });
 }
 
@@ -782,8 +930,8 @@ function injectUserInterface() {
             userControlGroup.className = 'control-group';
             userControlGroup.id = 'sidebarUserControlGroup';
             userControlGroup.innerHTML = `
-                <button class="btn-secondary" onclick="openUserManageModal()" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 12.5px; padding: 12px 14px; border-radius: 10px; margin-bottom: 8px;">
-                    <span>⚙️ จัดการโปรไฟล์ผู้ส่ง</span>
+                <button class="btn-secondary" onclick="openUserManageModal()" title="จัดการโปรไฟล์ผู้ส่ง" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 12.5px; padding: 12px 14px; border-radius: 10px; margin-bottom: 8px;">
+                    <span>⚙️</span><span class="btn-text-part">จัดการโปรไฟล์ผู้ส่ง</span>
                 </button>
             `;
             // Insert at the top of sidebar scroll area
@@ -855,12 +1003,12 @@ function injectUserInterface() {
                             <label>ชื่อรูปแบบเทมเพลต</label>
                             <input type="text" id="tplTitle" class="input-field" placeholder="เช่น แคมเปญ Sereniz 20% หรือ ดีลซื้อลิขสิทธิ์">
                         </div>
-                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="form-grid tpl-form-row">
                             <div class="form-group">
                                 <label>ป้ายแท็กกำกับ (Badge)</label>
                                 <input type="text" id="tplBadge" class="input-field" placeholder="เช่น TikTok DM หรือ Line">
                             </div>
-                            <div class="form-group" style="display: flex; align-items: center; padding-top: 24px;">
+                            <div class="form-group tpl-checkbox-group">
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
                                     <input type="checkbox" id="tplShowBudget" style="width: 16px; height: 16px;">
                                     <span>แสดงช่องระบุงบประมาณในแถบข้าง</span>
@@ -1649,8 +1797,9 @@ function selectCustomCampaign(key) {
     
     // Reset flow step to 0 when switching
     currentFlowStep = 0;
-    
+
     renderActiveCampaign();
+    closeSidebar();
 }
 
 function renderSidebarNavigation() {
@@ -1665,7 +1814,7 @@ function renderSidebarNavigation() {
     const defaultList = [
         { id: 'sereniz', label: 'Sereniz (10%)', icon: '💤' },
         { id: 'contact', label: 'Contact (Affiliate)', icon: '📞' },
-        { id: 'gmail', label: 'Gmail Outreach', icon: '📧' },
+        { id: 'gmail', label: 'Gmail Drive', icon: '📧' },
         { id: 'tiktok', label: 'TikTok Quick DM', icon: '💬' },
         { id: 'buyasset', label: 'Buy Asset (ซื้อคลิป)', icon: '🪙' }
     ];
@@ -1676,7 +1825,7 @@ function renderSidebarNavigation() {
         
         html += `
             <div class="nav-btn-container ${isActive ? 'active' : ''}">
-                <a href="${isActive ? '#' : `${pathPrefix}${item.id}.html`}" class="nav-btn" id="nav-${item.id}" onclick="${isActive ? 'event.preventDefault();' : ''}">
+                <a href="${isActive ? '#' : `${pathPrefix}${item.id}.html`}" class="nav-btn" id="nav-${item.id}" title="${item.label}" onclick="${isActive ? 'event.preventDefault(); closeSidebar();' : ''}">
                     <span class="nav-btn-icon">${item.icon}</span>
                     <span class="nav-btn-label">${item.label}</span>
                 </a>
@@ -1719,8 +1868,8 @@ function renderSidebarNavigation() {
     }
 
     html += `
-        <button class="btn-secondary btn-add-template" onclick="openCustomTemplateModal()">
-            <span>➕ เพิ่มรูปแบบเทมเพลต</span>
+        <button class="btn-secondary btn-add-template" onclick="openCustomTemplateModal()" title="เพิ่มรูปแบบเทมเพลต">
+            <span>➕</span><span class="btn-text-part">เพิ่มรูปแบบเทมเพลต</span>
         </button>
     `;
 

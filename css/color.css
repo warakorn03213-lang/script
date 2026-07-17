@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap');
 
 :root {
-    /* Outreach Hub — Dark, blue-grey base with a single indigo accent */
+    /* Drive Hub — Dark, blue-grey base with a single indigo accent */
     --bg: #121A22;
     --sidebar-bg: #0E151C;
     --surface: #1B2530;
@@ -813,12 +813,295 @@ body::before {
     animation: fadeUp 0.35s 0.1s ease both;
 }
 
+.tpl-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.tpl-checkbox-group {
+    display: flex;
+    align-items: center;
+    padding-top: 24px;
+}
+
+/* ==========================================
+   RESPONSIVE LAYOUT
+   ========================================== */
+
+/* Tablet: single-column script cards, slightly tighter chrome */
 @media (max-width: 1024px) {
     .cards-grid {
         grid-template-columns: 1fr;
     }
     .script-card.span-full {
         grid-column: span 1;
+    }
+    .sidebar {
+        width: 260px;
+    }
+    .workspace-header {
+        padding: 18px 24px;
+    }
+    .workspace-scroll {
+        padding: 24px;
+    }
+}
+
+/* HAMBURGER MENU BUTTON — toggles the sidebar (off-canvas drawer on mobile, collapse-to-rail on desktop) */
+.hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 36px;
+    height: 36px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.hamburger-btn span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background-color: var(--text-muted);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.hamburger-btn:hover span {
+    background-color: var(--text);
+}
+
+/* SIDEBAR BACKDROP (mobile/tablet only, dims the workspace while the drawer is open) */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(6, 10, 14, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 1500;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.sidebar-backdrop.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Small tablet / large phone: sidebar becomes an off-canvas drawer */
+@media (max-width: 860px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        max-width: 82vw;
+        height: 100vh;
+        z-index: 2000;
+        /* The entrance animation on .sidebar also animates `transform`, which would
+           otherwise permanently override the translateX below (fill-mode: both wins
+           over any static transform declaration for the same property). Disable it
+           here so the open/close drawer transform actually takes effect. */
+        animation: none;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 12px 0 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-scroll {
+        padding: 18px 16px;
+        gap: 18px;
+    }
+
+    .nav-btn-label {
+        max-width: none;
+    }
+
+    .workspace-header {
+        padding: 16px 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-controls {
+        flex-wrap: wrap;
+        gap: 12px;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .workspace-scroll {
+        padding: 18px;
+    }
+
+    .flow-stepper {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 16px;
+    }
+
+    /* Prevent iOS Safari from auto-zooming when an input gains focus */
+    .input-field,
+    textarea.input-field {
+        font-size: 16px;
+    }
+}
+
+/* Desktop/laptop: the same toggle button collapses the sidebar into a slim icon rail
+   instead of sliding it off-canvas (there's plenty of width to keep both visible). */
+@media (min-width: 861px) {
+    .sidebar {
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar.collapsed {
+        width: 72px;
+    }
+
+    .sidebar.collapsed .brand-header {
+        padding: 20px 0;
+        justify-content: center;
+    }
+
+    .sidebar.collapsed .brand-info,
+    .sidebar.collapsed .control-title,
+    .sidebar.collapsed .input-wrapper,
+    .sidebar.collapsed .info-card,
+    .sidebar.collapsed .nav-btn-label,
+    .sidebar.collapsed .nav-action-btn,
+    .sidebar.collapsed .nav-action-placeholder,
+    .sidebar.collapsed .sidebar-divider,
+    .sidebar.collapsed .btn-text-part {
+        display: none;
+    }
+
+    .sidebar.collapsed .sidebar-scroll {
+        padding: 16px 8px;
+        align-items: center;
+    }
+
+    .sidebar.collapsed .control-group {
+        align-items: center;
+    }
+
+    .sidebar.collapsed .nav-list {
+        width: 100%;
+    }
+
+    .sidebar.collapsed .nav-btn-container .nav-btn {
+        justify-content: center;
+        padding: 10px 0;
+    }
+
+    .sidebar.collapsed .btn-add-template,
+    .sidebar.collapsed #sidebarUserControlGroup .btn-secondary {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        justify-content: center;
+    }
+}
+
+/* While the drawer is open, stop the page underneath from scrolling */
+body.sidebar-lock {
+    overflow: hidden;
+}
+
+/* Phones */
+@media (max-width: 480px) {
+    .brand-header {
+        padding: 16px 18px;
+    }
+
+    .campaign-info h1 {
+        font-size: 15.5px;
+    }
+
+    .workspace-scroll {
+        padding: 14px;
+    }
+
+    .progress-indicator {
+        gap: 8px;
+        padding: 6px 10px;
+    }
+
+    .progress-bar-container {
+        width: 60px;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px 16px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .card-footer {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+    }
+
+    .card-footer .btn-secondary,
+    .card-footer .btn-copy {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .modal-content {
+        width: 94%;
+    }
+
+    .modal-header {
+        padding: 16px 18px;
+    }
+
+    .modal-body {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .tpl-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tpl-checkbox-group {
+        padding-top: 0;
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+    }
+
+    .form-actions button {
+        flex: 1;
+    }
+
+    .profile-item {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+        white-space: normal;
     }
 }
 
