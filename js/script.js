@@ -252,7 +252,7 @@ function getCurrentUser() {
 // Database of outreach templates
 const templates = {
     sereniz: {
-        title: "💤 Sereniz Drive (Commission 10%)",
+        title: "💤 ชวนรีวิว Sereniz (คอม 10%)",
         badge: "TikTok Shop",
         showBudget: false,
         steps: [
@@ -279,7 +279,7 @@ const templates = {
         ]
     },
     contact: {
-        title: "📞 Contact (Affiliate/Commission)",
+        title: "📞 ทักชวนงาน Affiliate",
         badge: "TikTok",
         showBudget: false,
         steps: [
@@ -291,7 +291,7 @@ const templates = {
         ]
     },
     gmail: {
-        title: "📧 Gmail Drive Letter",
+        title: "📧 อีเมลเชิญร่วมงาน",
         badge: "Email Business",
         showBudget: false,
         steps: [
@@ -303,7 +303,7 @@ const templates = {
         ]
     },
     tiktok: {
-        title: "💬 TikTok Quick Direct Message",
+        title: "💬 ทัก DM สั้น (TikTok)",
         badge: "TikTok DM",
         showBudget: false,
         steps: [
@@ -315,7 +315,7 @@ const templates = {
         ]
     },
     buyasset: {
-        title: "🪙 Buy Asset (ซื้อสิทธิ์การใช้คลิป)",
+        title: "🪙 ซื้อสิทธิ์คลิป (มีงบจ้าง)",
         badge: "Paid Campaign",
         showBudget: true,
         steps: [
@@ -390,12 +390,12 @@ function renderAppShell() {
                         </div>
 
                         <div class="input-wrapper">
-                            <span class="input-icon">🎵</span>
+                            <span class="input-icon">${ic('music')}</span>
                             <input class="input-field" id="sidebarChannel" type="text" placeholder="ระบุชื่อช่อง TikTok" oninput="handleInputSync(this, 'channel')">
                         </div>
 
                         <div class="input-wrapper" id="budgetInputContainer">
-                            <span class="input-icon">💰</span>
+                            <span class="input-icon">${ic('wallet')}</span>
                             <input class="input-field" id="sidebarBudget" type="text" placeholder="ระบุงบประมาณ (เช่น 500)" oninput="handleInputSync(this, 'budget')">
                         </div>
                     </div>
@@ -725,13 +725,16 @@ function renderActiveCampaign() {
         if (urls) {
             linkButtonsHtml = '<div class="card-links">';
             urls.forEach(url => {
+                let iconName = 'link';
                 let label = "เปิดลิงก์";
                 if (url.includes("canva.com")) {
-                    label = "🎨 เปิดไฟล์บรีฟ Canva";
+                    iconName = 'palette';
+                    label = "เปิดไฟล์บรีฟ Canva";
                 } else if (url.includes("tiktok.com")) {
-                    label = "🎵 เปิดคลิปตัวอย่าง TikTok";
+                    iconName = 'video';
+                    label = "เปิดคลิปตัวอย่าง TikTok";
                 }
-                linkButtonsHtml += `<a href="${url}" target="_blank" class="card-link-btn">${label}</a>`;
+                linkButtonsHtml += `<a href="${url}" target="_blank" class="card-link-btn">${ic(iconName)}<span>${label}</span></a>`;
             });
             linkButtonsHtml += '</div>';
         }
@@ -753,20 +756,14 @@ function renderActiveCampaign() {
             footerContent = `
                 <button class="btn-secondary" onclick="prevFlowStep()" ${idx === 0 ? 'disabled' : ''}>ย้อนกลับ</button>
                 <button class="btn-copy btn-large" id="copy_btn_${idx}" onclick="copyCardText(${idx}, true)">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="display:inline-block; vertical-align:middle; margin-right: 4px;">
-                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
-                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                    </svg>
-                    คัดลอกข้อความ & ขั้นตอนถัดไป 👉
+                    ${ic('copy')}
+                    คัดลอกข้อความ &amp; ไปขั้นถัดไป
                 </button>
             `;
         } else {
             footerContent = `
                 <button class="btn-copy" id="copy_btn_${idx}" onclick="copyCardText(${idx}, false)">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="display:inline-block; vertical-align:middle; margin-right: 4px;">
-                        <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" />
-                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                    </svg>
+                    ${ic('copy')}
                     คัดลอกข้อความ
                 </button>
             `;
@@ -803,6 +800,33 @@ function renderActiveCampaign() {
 // Escaping safety helper
 function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Inline SVG icon set (Lucide-style). Stroke is currentColor, so every icon
+// picks up the surrounding token colour (teal, orange, muted…) automatically,
+// and size follows the wrapping element's font-size because each icon is 1em.
+const ICONS = {
+    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    message: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+    bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+    music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    pencil: '<path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+    reset: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+    file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+    palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" stroke="none"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2Z"/>',
+    video: '<path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+    link: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    copy: '<rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2"/>'
+};
+function ic(name) {
+    const body = ICONS[name] || '';
+    return `<svg class="ic" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 }
 
 // Titles are free text and often start with their own emoji (e.g. "💤 Sereniz Outreach...").
@@ -942,7 +966,7 @@ function injectUserInterface() {
             userControlGroup.id = 'sidebarUserControlGroup';
             userControlGroup.innerHTML = `
                 <button class="btn-secondary" onclick="openUserManageModal()" title="จัดการโปรไฟล์ผู้ส่ง" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 12.5px; padding: 12px 14px; border-radius: 10px; margin-bottom: 8px;">
-                    <span>⚙️</span><span class="btn-text-part">จัดการโปรไฟล์ผู้ส่ง</span>
+                    ${ic('settings')}<span class="btn-text-part">จัดการโปรไฟล์ผู้ส่ง</span>
                 </button>
             `;
             // Insert at the top of sidebar scroll area
@@ -1121,8 +1145,8 @@ function renderModalProfileList() {
                 </div>
             </div>
             <div class="profile-item-actions">
-                <button class="btn-icon" title="แก้ไข" onclick="editProfile('${profile.id}')">✏️</button>
-                <button class="btn-icon btn-delete" title="ลบ" onclick="deleteProfile('${profile.id}')">🗑️</button>
+                <button class="btn-icon" title="แก้ไข" onclick="editProfile('${profile.id}')">${ic('pencil')}</button>
+                <button class="btn-icon btn-delete" title="ลบ" onclick="deleteProfile('${profile.id}')">${ic('trash')}</button>
             </div>
         `;
         listEl.appendChild(item);
@@ -1823,11 +1847,11 @@ function renderSidebarNavigation() {
     let html = '';
 
     const defaultList = [
-        { id: 'sereniz', label: 'Sereniz (10%)', icon: '💤' },
-        { id: 'contact', label: 'Contact (Affiliate)', icon: '📞' },
-        { id: 'gmail', label: 'Gmail Drive', icon: '📧' },
-        { id: 'tiktok', label: 'TikTok Quick DM', icon: '💬' },
-        { id: 'buyasset', label: 'Buy Asset (ซื้อคลิป)', icon: '🪙' }
+        { id: 'sereniz', label: 'ชวนรีวิว Sereniz (10%)', icon: 'moon' },
+        { id: 'contact', label: 'ทักชวนงาน Affiliate', icon: 'users' },
+        { id: 'gmail', label: 'อีเมลเชิญร่วมงาน', icon: 'mail' },
+        { id: 'tiktok', label: 'ทัก DM สั้น (TikTok)', icon: 'message' },
+        { id: 'buyasset', label: 'ซื้อสิทธิ์คลิป (มีงบ)', icon: 'bag' }
     ];
 
     defaultList.forEach(item => {
@@ -1839,15 +1863,15 @@ function renderSidebarNavigation() {
         html += `
             <div class="nav-btn-container ${isActive ? 'active' : ''}">
                 <a href="${isActive ? '#' : `${pathPrefix}${item.id}.html`}" class="nav-btn" id="nav-${item.id}" title="${label}" onclick="${isActive ? 'event.preventDefault(); closeSidebar();' : ''}">
-                    <span class="nav-btn-icon">${item.icon}</span>
+                    <span class="nav-btn-icon">${ic(item.icon)}</span>
                     <span class="nav-btn-label">${label}</span>
                 </a>
                 <button class="nav-action-btn" onclick="editCustomTemplate('${item.id}')" title="แก้ไขเทมเพลต">
-                    ✏️
+                    ${ic('pencil')}
                 </button>
                 ${hasCustomOverride ? `
                 <button class="nav-action-btn btn-reset" onclick="deleteCustomTemplate('${item.id}')" title="คืนค่าเริ่มต้น">
-                    🔄
+                    ${ic('reset')}
                 </button>
                 ` : `
                 <div class="nav-action-placeholder"></div>
@@ -1869,14 +1893,14 @@ function renderSidebarNavigation() {
             html += `
                 <div class="nav-btn-container ${isActive ? 'active' : ''}">
                     <a href="#${key}" class="nav-btn" id="nav-${key}" onclick="selectCustomCampaign('${key}')">
-                        <span class="nav-btn-icon">📄</span>
+                        <span class="nav-btn-icon">${ic('file')}</span>
                         <span class="nav-btn-label">${esc(stripLeadingEmoji(temp.title))}</span>
                     </a>
                     <button class="nav-action-btn" onclick="editCustomTemplate('${key}')" title="แก้ไขเทมเพลต">
-                        ✏️
+                        ${ic('pencil')}
                     </button>
                     <button class="nav-action-btn btn-delete" onclick="deleteCustomTemplate('${key}')" title="ลบเทมเพลต">
-                        🗑️
+                        ${ic('trash')}
                     </button>
                 </div>
             `;
@@ -1885,7 +1909,7 @@ function renderSidebarNavigation() {
 
     html += `
         <button class="btn-secondary btn-add-template" onclick="openCustomTemplateModal()" title="เพิ่มรูปแบบเทมเพลต">
-            <span>➕</span><span class="btn-text-part">เพิ่มรูปแบบเทมเพลต</span>
+            ${ic('plus')}<span class="btn-text-part">เพิ่มรูปแบบเทมเพลต</span>
         </button>
     `;
 

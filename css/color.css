@@ -1722,3 +1722,86 @@ body.sidebar-lock {
 .step-touch-clone {
     padding: 12px !important;
 }
+
+/* ==========================================
+   ICON SYSTEM (inline SVG, inherits currentColor)
+   ========================================== */
+.ic {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+    stroke-width: 2;
+}
+
+/* Per-context icon sizing — each icon is 1em, so font-size drives its size */
+.nav-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    width: 20px;
+}
+
+.input-icon {
+    display: inline-flex;
+    font-size: 15px;
+    opacity: 0.75;
+}
+
+.nav-action-btn {
+    font-size: 14px;
+}
+
+.card-link-btn .ic {
+    font-size: 14px;
+}
+
+.btn-copy .ic,
+.btn-secondary .ic {
+    font-size: 15px;
+}
+
+.btn-icon {
+    font-size: 14px;
+}
+
+/* ==========================================
+   BUTTON POLISH — clearer depth, hover lift, keyboard focus
+   ========================================== */
+
+/* Secondary buttons gain the same subtle lift the copy button already has */
+.btn-secondary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(29, 33, 40, 0.08);
+}
+.btn-secondary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Icon buttons press in slightly for tactile feedback */
+.btn-icon:active:not(:disabled) {
+    transform: scale(0.92);
+}
+
+/* Visible keyboard focus everywhere interactive (mouse clicks stay ring-free) */
+.btn-copy:focus-visible,
+.btn-secondary:focus-visible,
+.btn-icon:focus-visible,
+.nav-btn:focus-visible,
+.view-btn:focus-visible,
+.nav-action-btn:focus-visible,
+.modal-close:focus-visible,
+.hamburger-btn:focus-visible,
+.sent-checkbox:focus-visible,
+.card-link-btn:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+
+/* Row actions are hover-revealed; keyboard focus must reveal them too */
+.nav-action-btn:focus-visible {
+    opacity: 1;
+}
