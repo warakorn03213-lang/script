@@ -322,7 +322,7 @@ const templates = {
             {
                 label: "แนะนำตัว & ข้อตกลง SOW (Intro & SOW)",
                 filename: "buy-asset-intro.txt",
-                template: (ch, budget) => `สวัสดีครับ ${getCurrentUser().name}นะครับ ติดต่อจาก แบรนด์ Drive บริษัท ไดร์ฟ จำกัด ครับ 🙏\n\nได้เห็นผลงานผ่านช่อง TikTok จากช่อง (${ch}) ทางแบรนด์จึงมีความสนใจ Asset คลิป Influencer หรือซื้อคลิป โดยการจัดทำคลิปวิดีโอรีวิวสินค้า เพื่อนำไปเผยแพร่บนช่องทางของแบรนด์โดยตรง\n(ไม่ต้องโพสต์ลงช่องทางส่วนตัวของคุณนะครับ)\n\nสินค้า: Sereniz ผลิตภัณฑ์เสริมอาหาร\n🔗 https://vt.tiktok.com/ZS9eUvXJDCM39-gqR5D/\n\n✨ รายละเอียดงาน (SOW)\n* จัดทำคลิปวิดีโอรีวิวสินค้า 1 คลิป โดยไม่ต้องใส่ Text\n* ความยาวประมาณ 1 นาที (ไม่ต่ำกว่า 45 วินาที) มีการพากย์เสียง\n* ใช้สำหรับลงทุกช่องทางของแบรนด์\n* ถ่ายทำตามบรีฟของทางแบรนด์ (สามารถปรับสไตล์ให้เหมาะกับตัวคุณได้ค่ะ)\n* ส่ง Draft แรกภายใน 3–5 วัน หลังจากได้รับสินค้า\n* ทางแบรนด์ขอสิทธิ์แก้ไขงานได้ไม่เกิน 3 ครั้ง\n\n💰Budget : ${budget} บาท\n\nหากสนใจ สามารถแจ้งเรท / สอบถามรายละเอียดเพิ่มเติมได้เลยนะครับ\nขอบคุณมากครับ 🙏✨`
+                template: (ch, budget) => `สวัสดีครับ ${getCurrentUser().name}นะครับ ติดต่อจาก แบรนด์ Drive บริษัท ไดร์ฟ จำกัด ครับ 🙏\n\nได้เห็นผลงานผ่านช่อง TikTok จากช่อง (${ch}) ทางแบรนด์จึงมีความสนใจ Asset คลิป Influencer หรือซื้อคลิป โดยการจัดทำคลิปวิดีโอรีวิวสินค้า เพื่อนำไปเผยแพร่บนช่องทางของแบรนด์โดยตรง\n(ไม่ต้องโพสต์ลงช่องทางส่วนตัวของคุณนะครับ)\n\nสินค้า: Sereniz ผลิตภัณฑ์เสริมอาหาร\n🔗 https://vt.tiktok.com/ZS9eUvXJDCM39-gqR5D/\n\n✨ รายละเอียดงาน (SOW)\n* จัดทำคลิปวิดีโอรีวิวสินค้า 1 คลิป โดยไม่ต้องใส่ Text\n* ความยาวประมาณ 1 นาที (ไม่ต่ำกว่า 45 วินาที) มีการพากย์เสียง\n* ใช้สำหรับลงทุกช่องทางของแบรนด์\n* ถ่ายทำตามบรีฟของทางแบรนด์ (สามารถปรับสไตล์ให้เหมาะกับตัวคุณได้ค่ะ)\n* ส่ง Draft แรกภายใน 3–5 วัน หลังจากได้รับสินค้า\n* ทางแบรนด์ขอสิทธิ์แก้ไขงานได้ไม่เกิน 3 ครั้ง\n\n💰Budget : ${budget}\n\nหากสนใจ สามารถแจ้งเรท / สอบถามรายละเอียดเพิ่มเติมได้เลยนะครับ\nขอบคุณมากครับ 🙏✨`
             },
             {
                 label: "คำถามเช็คความพร้อม (Contract Inquiry)",
@@ -606,7 +606,7 @@ function renderActiveCampaign() {
 
     const titleEl = document.getElementById('activeCampaignTitle');
     if (titleEl) {
-        titleEl.innerHTML = `<span class="campaign-title-text">${data.title}</span><span class="campaign-badge">${data.badge}</span>`;
+        titleEl.innerHTML = `<span class="campaign-title-text">${esc(data.title)}</span><span class="campaign-badge">${esc(data.badge)}</span>`;
     }
 
     const container = document.getElementById('scriptCardsContainer');
@@ -701,7 +701,8 @@ function renderActiveCampaign() {
         
         // Always highlight the channel name (either typed or fallback '(ชื่อช่อง)')
         highlightedHtml = highlightedHtml.replaceAll(esc(displayChannel), `<span class="hl">${esc(displayChannel)}</span>`);
-        if (data.showBudget && budgetValue.trim()) {
+        // Same for budget (either typed or fallback '500 บาท') — kept consistent with the channel highlight above
+        if (data.showBudget) {
             highlightedHtml = highlightedHtml.replaceAll(esc(displayBudget), `<span class="hl-budget">${esc(displayBudget)}</span>`);
         }
         
@@ -802,6 +803,16 @@ function renderActiveCampaign() {
 // Escaping safety helper
 function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Titles are free text and often start with their own emoji (e.g. "💤 Sereniz Outreach...").
+// Sidebar nav rows already show a fixed slot icon, so strip a leading emoji from the title
+// text to avoid showing the same (or a clashing) emoji twice in a row.
+const LEADING_EMOJI_RE = new RegExp(
+    '^\\p{Extended_Pictographic}(?:\\uFE0F)?(?:\\u200D\\p{Extended_Pictographic}(?:\\uFE0F)?)*\\s*', 'u'
+);
+function stripLeadingEmoji(text) {
+    return text.replace(LEADING_EMOJI_RE, '');
 }
 
 // Toggle checkboxes status
@@ -1821,13 +1832,15 @@ function renderSidebarNavigation() {
 
     defaultList.forEach(item => {
         const isActive = currentCampaign === item.id;
-        const hasCustomOverride = !!customTemplates[item.id];
-        
+        const override = customTemplates[item.id];
+        const hasCustomOverride = !!override;
+        const label = hasCustomOverride ? esc(stripLeadingEmoji(override.title)) : item.label;
+
         html += `
             <div class="nav-btn-container ${isActive ? 'active' : ''}">
-                <a href="${isActive ? '#' : `${pathPrefix}${item.id}.html`}" class="nav-btn" id="nav-${item.id}" title="${item.label}" onclick="${isActive ? 'event.preventDefault(); closeSidebar();' : ''}">
+                <a href="${isActive ? '#' : `${pathPrefix}${item.id}.html`}" class="nav-btn" id="nav-${item.id}" title="${label}" onclick="${isActive ? 'event.preventDefault(); closeSidebar();' : ''}">
                     <span class="nav-btn-icon">${item.icon}</span>
-                    <span class="nav-btn-label">${item.label}</span>
+                    <span class="nav-btn-label">${label}</span>
                 </a>
                 <button class="nav-action-btn" onclick="editCustomTemplate('${item.id}')" title="แก้ไขเทมเพลต">
                     ✏️
@@ -1843,7 +1856,10 @@ function renderSidebarNavigation() {
         `;
     });
 
-    const customKeys = Object.keys(customTemplates);
+    // Only genuinely user-added templates belong here — overrides of a default
+    // template id (edited in place above) must not be listed a second time.
+    const defaultIds = defaultList.map(item => item.id);
+    const customKeys = Object.keys(customTemplates).filter(key => !defaultIds.includes(key));
     if (customKeys.length > 0) {
         html += `<div class="sidebar-divider">เทมเพลตที่เพิ่มเอง</div>`;
         
@@ -1854,7 +1870,7 @@ function renderSidebarNavigation() {
                 <div class="nav-btn-container ${isActive ? 'active' : ''}">
                     <a href="#${key}" class="nav-btn" id="nav-${key}" onclick="selectCustomCampaign('${key}')">
                         <span class="nav-btn-icon">📄</span>
-                        <span class="nav-btn-label">${esc(temp.title)}</span>
+                        <span class="nav-btn-label">${esc(stripLeadingEmoji(temp.title))}</span>
                     </a>
                     <button class="nav-action-btn" onclick="editCustomTemplate('${key}')" title="แก้ไขเทมเพลต">
                         ✏️
