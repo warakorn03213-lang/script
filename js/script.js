@@ -84,6 +84,20 @@ function initCustomTemplates() {
     }
 }
 
+// A sender nickname is stripped from script bodies by a plain substring match,
+// so a name that is also a common word (e.g. "ครับ") or the brand itself ("Drive")
+// would rewrite every occurrence inside custom scripts — and sync that corruption
+// to Supabase for the whole team. Only sanitize names that are distinctive enough.
+const NAME_SANITIZE_STOPWORDS = new Set([
+    'ครับ', 'ค่ะ', 'คะ', 'ค่า', 'นะ', 'จ้า', 'จ้าา', 'ครับผม', 'ผม', 'ดิฉัน', 'เรา',
+    'Drive', 'drive', 'DRIVE', 'ไดร์ฟ', 'ไดรฟ์'
+]);
+function shouldSanitizeName(name) {
+    if (!name) return false;
+    const n = name.trim();
+    return n.length >= 3 && !NAME_SANITIZE_STOPWORDS.has(n);
+}
+
 function sanitizeCustomTemplatesWithPlaceholders() {
     let changed = false;
     const legacyPhones = ['0641607169'];
@@ -117,11 +131,11 @@ function sanitizeCustomTemplatesWithPlaceholders() {
                                 text = text.replaceAll(profile.phone, '{เบอร์โทร}');
                                 changed = true;
                             }
-                            if (profile.email && profile.email.trim().length > 3 && text.includes(profile.email)) {
+                            if (profile.email && profile.email.includes('@') && profile.email.trim().length > 3 && text.includes(profile.email)) {
                                 text = text.replaceAll(profile.email, '{อีเมล}');
                                 changed = true;
                             }
-                            if (profile.name && profile.name.trim().length > 1 && text.includes(profile.name)) {
+                            if (shouldSanitizeName(profile.name) && text.includes(profile.name)) {
                                 text = text.replaceAll(profile.name, '{ชื่อคนส่ง}');
                                 changed = true;
                             }
@@ -734,7 +748,7 @@ function renderActiveCampaign() {
                     iconName = 'video';
                     label = "เปิดคลิปตัวอย่าง TikTok";
                 }
-                linkButtonsHtml += `<a href="${url}" target="_blank" class="card-link-btn">${ic(iconName)}<span>${label}</span></a>`;
+                linkButtonsHtml += `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="card-link-btn">${ic(iconName)}<span>${esc(label)}</span></a>`;
             });
             linkButtonsHtml += '</div>';
         }
@@ -773,7 +787,7 @@ function renderActiveCampaign() {
             <div class="card-header">
                 <div class="card-title-group">
                     <span class="step-number">${idx + 1}</span>
-                    <span class="card-title">${step.label}</span>
+                    <span class="card-title">${esc(step.label)}</span>
                 </div>
                 <div class="card-actions">
                     <label class="sent-indicator">
@@ -783,7 +797,10 @@ function renderActiveCampaign() {
                 </div>
             </div>
             <div class="card-body-wrapper">
-                <div class="card-body" contenteditable="true" id="body_${idx}">${highlightedHtml}</div>
+                <div class="card-body" contenteditable="true" id="body_${idx}" onfocus="expandCard(${idx})">${highlightedHtml}</div>
+                <button type="button" class="card-expand-toggle" id="expand_${idx}" onclick="toggleCardExpand(${idx})">
+                    ${ic('chevron')}<span>ดูสคริปต์เต็ม</span>
+                </button>
                 ${linkButtonsHtml}
             </div>
             <div class="card-footer">
@@ -795,11 +812,71 @@ function renderActiveCampaign() {
     });
 
     updateProgress(completedSteps, totalSteps);
+    applyMobileClamp();
 }
 
+// Mobile progressive disclosure: collapse only genuinely long scripts to a few
+// lines with a "show full / collapse" toggle, so the reader doesn't scroll past
+// one long message to reach the next step. Short scripts are left untouched.
+const MOBILE_CLAMP_QUERY = '(max-width: 860px)';
+const MOBILE_CLAMP_THRESHOLD = 200; // px of full body height above which we clamp
+
+function applyMobileClamp() {
+    const isMobile = window.matchMedia(MOBILE_CLAMP_QUERY).matches;
+    document.querySelectorAll('.script-card').forEach(card => {
+        const body = card.querySelector('.card-body');
+        const toggle = card.querySelector('.card-expand-toggle');
+        if (!body || !toggle) return;
+
+        // Reset so scrollHeight reflects the full, unclamped content
+        card.classList.remove('clampable', 'collapsed');
+
+        if (isMobile && body.scrollHeight > MOBILE_CLAMP_THRESHOLD) {
+            card.classList.add('clampable', 'collapsed');
+            const span = toggle.querySelector('span');
+            if (span) span.textContent = 'ดูสคริปต์เต็ม';
+            toggle.classList.remove('is-expanded');
+        }
+    });
+}
+
+function toggleCardExpand(idx) {
+    const card = document.getElementById(`card_${idx}`);
+    if (!card) return;
+    const collapsed = card.classList.toggle('collapsed');
+    const btn = document.getElementById(`expand_${idx}`);
+    if (btn) {
+        const span = btn.querySelector('span');
+        if (span) span.textContent = collapsed ? 'ดูสคริปต์เต็ม' : 'ย่อสคริปต์';
+        btn.classList.toggle('is-expanded', !collapsed);
+    }
+}
+
+// Editing a collapsed card should reveal its full text first
+function expandCard(idx) {
+    const card = document.getElementById(`card_${idx}`);
+    if (card && card.classList.contains('collapsed')) {
+        toggleCardExpand(idx);
+    }
+}
+
+// Re-evaluate clamping when the viewport crosses the mobile breakpoint
+let _clampResizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(_clampResizeTimer);
+    _clampResizeTimer = setTimeout(applyMobileClamp, 150);
+});
+
 // Escaping safety helper
+// Escapes for safe interpolation into HTML — including quotes, so the same
+// helper is safe inside attribute values (title="...", href="...") as well as text.
 function esc(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // Inline SVG icon set (Lucide-style). Stroke is currentColor, so every icon
@@ -822,7 +899,8 @@ const ICONS = {
     palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" stroke="none"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2Z"/>',
     video: '<path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
     link: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
-    copy: '<rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2"/>'
+    copy: '<rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2"/>',
+    chevron: '<path d="m6 9 6 6 6-6"/>'
 };
 function ic(name) {
     const body = ICONS[name] || '';
@@ -891,7 +969,7 @@ function updateProgress(completed, total) {
     const pb = document.getElementById('progressBar');
     const pt = document.getElementById('progressText');
     if (pb) pb.style.width = `${pct}%`;
-    if (pt) pt.innerText = `สถานะ: ส่งไปแล้ว ${completed}/${total} ขั้นตอน`;
+    if (pt) pt.innerText = `ส่งแล้ว ${completed}/${total} ขั้นตอน`;
 }
 
 // Clipboard copying
@@ -1300,7 +1378,7 @@ function openCustomTemplateModal(editKey = '') {
                         text = step.template('{ชื่อช่อง}', '{งบประมาณ}');
                         // Reverse-replace current user details back to placeholders
                         const currentUser = getCurrentUser();
-                        if (currentUser.name) text = text.replaceAll(currentUser.name, '{ชื่อคนส่ง}');
+                        if (shouldSanitizeName(currentUser.name)) text = text.replaceAll(currentUser.name, '{ชื่อคนส่ง}');
                         if (currentUser.phone) text = text.replaceAll(currentUser.phone, '{เบอร์โทร}');
                         if (currentUser.email) text = text.replaceAll(currentUser.email, '{อีเมล}');
                     } catch(e) {

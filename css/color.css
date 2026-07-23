@@ -1805,3 +1805,170 @@ body.sidebar-lock {
 .nav-action-btn:focus-visible {
     opacity: 1;
 }
+
+/* ==========================================
+   MOBILE / TOUCH REFINEMENTS
+   (last in the file so equal-specificity rules win over the width blocks above)
+   ========================================== */
+
+/* Highlight chips keep their pill shape when they wrap onto a second line */
+.hl,
+.hl-budget,
+.hl-user {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+/* Larger, more readable script text and comfier rhythm on phones/tablets */
+@media (max-width: 860px) {
+    .card-body {
+        font-size: 15.5px;
+        line-height: 1.75;
+    }
+    .card-header {
+        padding: 14px 16px;
+    }
+    .workspace-scroll {
+        padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .cards-grid {
+        gap: 16px;
+    }
+    /* Keep the header title from being crushed by the badge */
+    .campaign-badge {
+        flex-shrink: 0;
+    }
+
+    /* Touch-friendly target sizes — phones are always ≤860, so gate on width here
+       (pointer/hover queries below add the same for touch tablets at wider widths) */
+    .view-btn {
+        padding: 8px 13px;
+        min-height: 36px;
+    }
+    .btn-copy {
+        padding: 12px 18px;
+        min-height: 46px;
+    }
+    .btn-secondary {
+        min-height: 42px;
+    }
+    .card-link-btn {
+        padding: 10px 14px;
+    }
+    .sent-checkbox {
+        width: 18px;
+        height: 18px;
+    }
+    .sent-indicator {
+        padding: 6px 2px;
+    }
+    /* No hover on touch — keep the edit / delete / reset actions visible */
+    .nav-action-btn {
+        opacity: 0.55;
+    }
+}
+
+/* Touch devices: enlarge tap targets and reveal hover-only controls */
+@media (pointer: coarse) {
+    .view-btn {
+        padding: 9px 14px;
+        min-height: 38px;
+    }
+    .btn-copy {
+        padding: 13px 18px;
+        min-height: 46px;
+    }
+    .btn-secondary {
+        min-height: 42px;
+    }
+    .card-link-btn {
+        padding: 10px 14px;
+    }
+    .sent-checkbox {
+        width: 18px;
+        height: 18px;
+    }
+    .sent-indicator {
+        padding: 6px 2px;
+    }
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+    }
+    .nav-btn-container .nav-btn {
+        padding: 13px 12px;
+    }
+}
+
+/* No hover (touch): edit / delete / reset can't be hover-revealed, so keep them visible */
+@media (hover: none) {
+    .nav-action-btn {
+        opacity: 0.55;
+    }
+}
+
+/* ==========================================
+   MOBILE PROGRESSIVE DISCLOSURE (collapse long scripts)
+   ========================================== */
+/* A floating pill that appears to emerge from the faded bottom of a clamped card */
+.card-expand-toggle {
+    display: none; /* desktop: never shown */
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: -20px auto 10px; /* tuck up into the fade so it reads as "more below" */
+    padding: 8px 18px;
+    background: var(--surface);
+    border: 1px solid var(--green-border);
+    border-radius: 999px;
+    color: var(--green);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(29, 33, 40, 0.12);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s ease, background-color 0.2s ease;
+    position: relative;
+    z-index: 2;
+}
+.card-expand-toggle:hover {
+    background: var(--green-glow);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px var(--green-glow);
+}
+.card-expand-toggle:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(29, 33, 40, 0.12);
+}
+/* No fade to tuck into once expanded — sit at a normal offset */
+.card-expand-toggle.is-expanded {
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(29, 33, 40, 0.08);
+}
+.card-expand-toggle .ic {
+    font-size: 15px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-expand-toggle.is-expanded .ic {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 860px) {
+    /* Only cards flagged as long (measured in JS) get the collapse behaviour */
+    .script-card.clampable .card-expand-toggle {
+        display: inline-flex;
+    }
+    .script-card.clampable.collapsed .card-body {
+        max-height: 168px;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+                mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+    }
+    /* Keep a collapsed card genuinely compact: hide the script's link buttons until expanded */
+    .script-card.clampable.collapsed .card-links {
+        display: none;
+    }
+}
