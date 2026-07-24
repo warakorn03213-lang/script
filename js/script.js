@@ -1073,17 +1073,80 @@ function copyCardText(idx, advanceStep = false) {
     });
 }
 
-// Toast notification helper
+// Toast notification helper.
+// `type` picks the accent + icon so the toast reads as what it reports:
+// 'success' (green ✓, default) for saves/creates, 'danger' (red trash) for deletes.
 let toastTimer;
-function showToast(msg) {
+function showToast(msg, type = 'success') {
     clearTimeout(toastTimer);
     const toast = document.getElementById('toast');
     const toastText = document.getElementById('toastText');
+    const toastIcon = toast ? toast.querySelector('.toast-icon') : null;
     if (toastText) toastText.innerText = msg;
-    if (toast) toast.classList.add('show');
+    if (toast) {
+        toast.dataset.type = type;
+        if (toastIcon) toastIcon.innerHTML = (type === 'danger') ? ic('trash') : '✓';
+        toast.classList.add('show');
+    }
     toastTimer = setTimeout(() => {
         if (toast) toast.classList.remove('show');
     }, 2500);
+}
+
+// Styled confirmation dialog — a Promise-based replacement for native confirm(),
+// so a destructive action gets the app's own modal (blur backdrop, slide-up, brand
+// tokens) instead of a jarring browser box. Resolves true on confirm, false on
+// cancel / backdrop / Escape. Falls back to window.confirm if the dialog node is
+// somehow missing, so a delete can never become unblockable.
+function showConfirm({ title, message = '', confirmText = 'ยืนยัน', cancelText = 'ยกเลิก', danger = false } = {}) {
+    return new Promise(resolve => {
+        const dialog = document.getElementById('confirmDialog');
+        if (!dialog) { resolve(window.confirm(message || title || '')); return; }
+
+        const iconEl = document.getElementById('confirmIcon');
+        const titleEl = document.getElementById('confirmTitle');
+        const msgEl = document.getElementById('confirmMessage');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        if (titleEl) titleEl.textContent = title || '';
+        if (msgEl) {
+            msgEl.textContent = message;
+            msgEl.style.display = message ? 'block' : 'none';
+        }
+        if (okBtn) {
+            okBtn.textContent = confirmText;
+            okBtn.className = danger ? 'btn-danger' : 'btn-copy';
+        }
+        if (cancelBtn) cancelBtn.textContent = cancelText;
+        if (iconEl) {
+            iconEl.className = 'confirm-icon' + (danger ? ' is-danger' : '');
+            iconEl.innerHTML = ic(danger ? 'trash' : 'reset');
+        }
+
+        dialog.style.display = 'flex';
+        if (okBtn) okBtn.focus();
+
+        function cleanup(result) {
+            dialog.style.display = 'none';
+            if (okBtn) okBtn.removeEventListener('click', onOk);
+            if (cancelBtn) cancelBtn.removeEventListener('click', onCancel);
+            dialog.removeEventListener('mousedown', onBackdrop);
+            document.removeEventListener('keydown', onKey);
+            resolve(result);
+        }
+        function onOk() { cleanup(true); }
+        function onCancel() { cleanup(false); }
+        function onBackdrop(e) { if (e.target === dialog) cleanup(false); }
+        function onKey(e) {
+            if (e.key === 'Escape') cleanup(false);
+            else if (e.key === 'Enter') cleanup(true);
+        }
+        if (okBtn) okBtn.addEventListener('click', onOk);
+        if (cancelBtn) cancelBtn.addEventListener('click', onCancel);
+        dialog.addEventListener('mousedown', onBackdrop);
+        document.addEventListener('keydown', onKey);
+    });
 }
 
 // --- USER PROFILES SYSTEM LOGIC ---
@@ -1217,6 +1280,26 @@ function injectUserInterface() {
         </div>
         `;
         document.body.insertAdjacentHTML('beforeend', customTemplateModalHtml);
+    }
+
+    // 4. Inject the shared confirmation dialog (used by showConfirm) once.
+    if (!document.getElementById('confirmDialog')) {
+        const confirmHtml = `
+        <div id="confirmDialog" class="modal-backdrop" style="display: none;">
+            <div class="modal-content confirm-content">
+                <div class="confirm-body">
+                    <div class="confirm-icon" id="confirmIcon"></div>
+                    <h3 class="confirm-title" id="confirmTitle"></h3>
+                    <p class="confirm-message" id="confirmMessage"></p>
+                </div>
+                <div class="confirm-actions">
+                    <button class="btn-secondary" id="confirmCancelBtn">ยกเลิก</button>
+                    <button class="btn-danger" id="confirmOkBtn">ยืนยัน</button>
+                </div>
+            </div>
+        </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', confirmHtml);
     }
 }
 
@@ -1370,30 +1453,36 @@ function cancelProfileEdit() {
 }
 
 // Delete profile
-function deleteProfile(id) {
+async function deleteProfile(id) {
     const profileToDelete = userProfiles.find(p => p.id === id);
     if (!profileToDelete) return;
 
     if (userProfiles.length <= 1) {
-        alert('ไม่สามารถลบโปรไฟล์ได้ เนื่องจากต้องมีอย่างน้อย 1 โปรไฟล์ในระบบ');
+        showToast('ต้องมีโปรไฟล์ผู้ส่งอย่างน้อย 1 รายการ', 'danger');
         return;
     }
 
-    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบโปรไฟล์ "${profileToDelete.name}"?`)) {
-        userProfiles = userProfiles.filter(p => p.id !== id);
-        
-        // If the deleted profile was active, set active to another one
-        if (id === activeProfileId) {
-            activeProfileId = userProfiles[0].id;
-            localStorage.setItem('global_active_profile_id', activeProfileId);
-        }
+    const ok = await showConfirm({
+        title: 'ลบโปรไฟล์นี้?',
+        message: `“${profileToDelete.name}” จะถูกลบออกจากเครื่องนี้`,
+        confirmText: 'ลบโปรไฟล์',
+        danger: true
+    });
+    if (!ok) return;
 
-        localStorage.setItem('global_user_profiles', JSON.stringify(userProfiles));
-        
-        showToast(`ลบโปรไฟล์ "${profileToDelete.name}" สำเร็จ`);
-        renderModalProfileList();
-        renderActiveCampaign();
+    userProfiles = userProfiles.filter(p => p.id !== id);
+
+    // If the deleted profile was active, set active to another one
+    if (id === activeProfileId) {
+        activeProfileId = userProfiles[0].id;
+        localStorage.setItem('global_active_profile_id', activeProfileId);
     }
+
+    localStorage.setItem('global_user_profiles', JSON.stringify(userProfiles));
+
+    showToast(`ลบโปรไฟล์ “${profileToDelete.name}” แล้ว`, 'danger');
+    renderModalProfileList();
+    renderActiveCampaign();
 }
 
 // --- CUSTOM TEMPLATE SYSTEM LOGIC ---
@@ -1898,30 +1987,39 @@ async function saveToSupabase(key, templateData) {
     }
 }
 
-function deleteCustomTemplate(key) {
+async function deleteCustomTemplate(key) {
     const defaultList = ['sereniz', 'contact', 'gmail', 'tiktok', 'buyasset'];
     const isDefault = defaultList.includes(key);
-    
-    const confirmMsg = isDefault 
-        ? `คุณต้องการคืนค่าเริ่มต้นสำหรับเทมเพลต "${templates[key].title}" หรือไม่? ข้อมูลที่แก้ไขจะหายไป`
-        : `คุณแน่ใจหรือไม่ที่จะลบรูปแบบเทมเพลต "${customTemplates[key].title}"?`;
-        
-    if (confirm(confirmMsg)) {
-        const title = customTemplates[key] ? customTemplates[key].title : (templates[key] ? templates[key].title : '');
-        delete customTemplates[key];
-        clearCampaignEdits(key);
-        localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
-        
-        // Delete from Supabase if configured
-        if (supabaseClient) {
-            deleteFromSupabase(key);
+    const title = customTemplates[key] ? customTemplates[key].title : (templates[key] ? templates[key].title : '');
+
+    const ok = await showConfirm(isDefault
+        ? {
+            title: 'คืนค่าเทมเพลตเริ่มต้น?',
+            message: `“${title}” จะกลับไปเป็นค่าเริ่มต้น ข้อความที่แก้ไขไว้จะหายทั้งหมด`,
+            confirmText: 'คืนค่าเริ่มต้น',
+            danger: false
         }
-        
-        showToast(isDefault ? `คืนค่าเทมเพลต "${title}" สำเร็จ` : `ลบเทมเพลต "${title}" สำเร็จ`);
-        
-        renderSidebarNavigation();
-        renderActiveCampaign();
+        : {
+            title: 'ลบเทมเพลตนี้?',
+            message: `“${title}” จะถูกลบออกจากทุกเครื่องในทีม และกู้คืนไม่ได้`,
+            confirmText: 'ลบเทมเพลต',
+            danger: true
+        });
+    if (!ok) return;
+
+    delete customTemplates[key];
+    clearCampaignEdits(key);
+    localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
+
+    // Delete from Supabase if configured
+    if (supabaseClient) {
+        deleteFromSupabase(key);
     }
+
+    showToast(isDefault ? `คืนค่าเทมเพลต “${title}” แล้ว` : `ลบเทมเพลต “${title}” แล้ว`, isDefault ? 'success' : 'danger');
+
+    renderSidebarNavigation();
+    renderActiveCampaign();
 }
 
 async function deleteFromSupabase(key) {
