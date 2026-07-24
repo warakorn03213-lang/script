@@ -996,9 +996,9 @@ body::before {
     }
 
     .workspace-header {
-        padding: 10px 10px;
+        padding: 8px 12px;
         flex-wrap: wrap;
-        gap: 8px 22px;
+        gap: 6px 16px;
     }
 
     .campaign-info h1 {
@@ -1020,7 +1020,7 @@ body::before {
 
     .progress-indicator {
         gap: 8px;
-        padding: 5px 10px;
+        padding: 4px 9px;
     }
 
     .progress-label {
@@ -1032,7 +1032,7 @@ body::before {
     }
 
     .workspace-scroll {
-        padding: 18px;
+        padding: 14px 18px 24px;
     }
 
     .flow-stepper {
@@ -1120,8 +1120,8 @@ body.sidebar-lock {
     }
 
     .workspace-header {
-        padding: 8px 8px;
-        gap: 6px 20px;
+        padding: 6px 10px;
+        gap: 4px 14px;
     }
 
     .campaign-info h1 {
@@ -1144,7 +1144,7 @@ body.sidebar-lock {
     }
 
     .workspace-scroll {
-        padding: 14px;
+        padding: 12px 14px 22px;
     }
 
     .progress-indicator {
