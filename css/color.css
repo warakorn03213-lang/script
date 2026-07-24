@@ -88,8 +88,13 @@ body {
     background-color: var(--bg);
     color: var(--text);
     font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+    /* dvh tracks the *visible* viewport, so the layout shrinks with the mobile URL
+       bar / on-screen keyboard instead of overflowing above the fold and stranding
+       the header out of reach (the "can't scroll back to the top" bug). */
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
+    overscroll-behavior: none;
     display: flex;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -115,6 +120,7 @@ body::before {
     display: flex;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     position: relative;
     z-index: 1;
@@ -427,7 +433,12 @@ body::before {
 /* Scroll Area */
 .workspace-scroll {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    /* Keep the scroll contained here: never chain to the document, so a flick past
+       the end can't nudge the mobile URL bar and shift the whole shell off-screen. */
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
     padding: 28px 40px 40px;
 }
 
@@ -954,6 +965,7 @@ body::before {
         width: 280px;
         max-width: 82vw;
         height: 100vh;
+        height: 100dvh;
         z-index: 2000;
         /* The entrance animation on .sidebar also animates `transform`, which would
            otherwise permanently override the translateX below (fill-mode: both wins
@@ -1229,6 +1241,7 @@ body.sidebar-lock {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background-color: rgba(6, 10, 14, 0.65);
     backdrop-filter: blur(16px);
     display: flex;
