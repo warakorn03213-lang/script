@@ -43,6 +43,8 @@ let userProfiles = [];
 let activeProfileId = '';
 let customTemplates = {};
 let supabaseClient = null;
+let realtimeChannel = null;
+let _realtimeRefreshTimer = null;
 
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
@@ -81,7 +83,30 @@ function initCustomTemplates() {
     
     if (supabaseClient) {
         loadSupabaseTemplates();
+        subscribeToTemplateChanges();
     }
+}
+
+// Live sync (option 2): subscribe to Supabase Realtime so a teammate's add/edit/
+// delete appears without a manual reload. Every change just re-runs
+// loadSupabaseTemplates (which rebuilds from remote = source of truth), debounced
+// so a burst of writes collapses into a single refresh. In-progress card edits are
+// preserved because editedTexts survives the re-render.
+// NOTE: this needs Realtime enabled for the custom_templates table in the Supabase
+// dashboard (Database → Replication, or `alter publication supabase_realtime add
+// table custom_templates`). If it isn't enabled, this silently no-ops — the app
+// still works, teammates just won't see live updates until they reload.
+function subscribeToTemplateChanges() {
+    if (!supabaseClient || realtimeChannel) return;
+    realtimeChannel = supabaseClient
+        .channel('custom_templates_live')
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'custom_templates' },
+            () => {
+                clearTimeout(_realtimeRefreshTimer);
+                _realtimeRefreshTimer = setTimeout(loadSupabaseTemplates, 300);
+            })
+        .subscribe();
 }
 
 // A sender nickname is stripped from script bodies by a plain substring match,
