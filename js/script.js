@@ -871,14 +871,13 @@ function renderActiveCampaign() {
     applyMobileClamp();
 }
 
-// Mobile progressive disclosure: collapse only genuinely long scripts to a few
-// lines with a "show full / collapse" toggle, so the reader doesn't scroll past
-// one long message to reach the next step. Short scripts are left untouched.
-const MOBILE_CLAMP_QUERY = '(max-width: 860px)';
+// Progressive disclosure: collapse only genuinely long scripts to a few lines
+// with a "show full / collapse" toggle, so the reader doesn't scroll past one
+// long message to reach the next step. Applies on every viewport (desktop too);
+// short scripts are left untouched.
 const MOBILE_CLAMP_THRESHOLD = 200; // px of full body height above which we clamp
 
 function applyMobileClamp() {
-    const isMobile = window.matchMedia(MOBILE_CLAMP_QUERY).matches;
     document.querySelectorAll('.script-card').forEach(card => {
         const body = card.querySelector('.card-body');
         const toggle = card.querySelector('.card-expand-toggle');
@@ -887,7 +886,7 @@ function applyMobileClamp() {
         // Reset so scrollHeight reflects the full, unclamped content
         card.classList.remove('clampable', 'collapsed');
 
-        if (isMobile && body.scrollHeight > MOBILE_CLAMP_THRESHOLD) {
+        if (body.scrollHeight > MOBILE_CLAMP_THRESHOLD) {
             card.classList.add('clampable', 'collapsed');
             const span = toggle.querySelector('span');
             if (span) span.textContent = 'ดูสคริปต์เต็ม';

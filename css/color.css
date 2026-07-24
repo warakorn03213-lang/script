@@ -2082,19 +2082,18 @@ body.sidebar-lock {
     transform: rotate(180deg);
 }
 
-@media (max-width: 860px) {
-    /* Only cards flagged as long (measured in JS) get the collapse behaviour */
-    .script-card.clampable .card-expand-toggle {
-        display: inline-flex;
-    }
-    .script-card.clampable.collapsed .card-body {
-        max-height: 168px;
-        overflow: hidden;
-        -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-                mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-    }
-    /* Keep a collapsed card genuinely compact: hide the script's link buttons until expanded */
-    .script-card.clampable.collapsed .card-links {
-        display: none;
-    }
+/* Applies on every viewport now (desktop included): only cards flagged as long
+   (measured in JS) get the collapse behaviour, so short scripts stay untouched. */
+.script-card.clampable .card-expand-toggle {
+    display: inline-flex;
+}
+.script-card.clampable.collapsed .card-body {
+    max-height: 168px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+/* Keep a collapsed card genuinely compact: hide the script's link buttons until expanded */
+.script-card.clampable.collapsed .card-links {
+    display: none;
 }
