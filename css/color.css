@@ -1181,6 +1181,15 @@ body.sidebar-lock {
         justify-content: center;
     }
 
+    /* Flow view has both a "ย้อนกลับ" and the primary copy button side by side;
+       give the primary one more room so its label stays on one line instead of
+       wrapping into an awkward 3-line stack. (Grid view has only the copy button,
+       which still fills the row via flex: 1 above.) */
+    .card-footer .btn-copy.btn-large {
+        flex: 2;
+        white-space: nowrap;
+    }
+
     .modal-content {
         width: 94%;
     }

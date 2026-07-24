@@ -827,7 +827,7 @@ function renderActiveCampaign() {
                 <button class="btn-secondary" onclick="prevFlowStep()" ${idx === 0 ? 'disabled' : ''}>ย้อนกลับ</button>
                 <button class="btn-copy btn-large" id="copy_btn_${idx}" onclick="copyCardText(${idx}, true)">
                     ${ic('copy')}
-                    คัดลอกข้อความ &amp; ไปขั้นถัดไป
+                    คัดลอก &amp; ถัดไป
                 </button>
             `;
         } else {
