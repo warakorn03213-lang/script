@@ -171,31 +171,33 @@ async function loadSupabaseTemplates() {
         if (error) throw error;
         
         if (data) {
-            const remoteKeys = new Set(data.map(item => item.id));
-            const localKeys = Object.keys(customTemplates);
-            
-            // Auto-upload any templates created locally before Supabase integration
-            for (const key of localKeys) {
-                if (!remoteKeys.has(key)) {
-                    await saveToSupabase(key, customTemplates[key]);
-                }
-            }
-            
+            // Supabase is the single source of truth for custom templates: rebuild
+            // the local set entirely from remote instead of merging into it. A key
+            // that exists locally but not remotely was deleted/reset by a teammate,
+            // so it must disappear here too. (The old code re-uploaded such keys,
+            // which resurrected everyone's deletions and kept stale overrides alive.)
+            const rebuilt = {};
             data.forEach(item => {
-                customTemplates[item.id] = {
+                rebuilt[item.id] = {
                     title: item.title,
                     badge: item.badge,
                     showBudget: item.show_budget,
                     steps: item.steps
                 };
             });
-            
-            // Run sanitization after merging remote updates
+            customTemplates = rebuilt;
+
+            // Run sanitization after loading remote updates
             sanitizeCustomTemplatesWithPlaceholders();
-            
+
             localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
             renderSidebarNavigation();
-            
+
+            // If the template currently on screen was deleted remotely by a teammate,
+            // fall back to this page's default so we don't render a blank workspace.
+            if (!customTemplates[currentCampaign] && !templates[currentCampaign]) {
+                currentCampaign = getPageId();
+            }
             const currentHash = window.location.hash.replace('#', '');
             if (currentHash && customTemplates[currentHash]) {
                 currentCampaign = currentHash;
@@ -379,6 +381,29 @@ let budgetValue = '';
 let checkedStates = {};
 let viewMode = 'grid';
 let currentFlowStep = 0;
+
+// Manual edits made in a card body (contenteditable), keyed by `${campaign}_${idx}`.
+// A re-render (typing a channel, toggling "sent", switching profile/view) rebuilds
+// the cards' innerHTML from the template, which would otherwise wipe the edit — so
+// whatever the user typed here wins over the template output on every re-render.
+// Session-scoped on purpose (not persisted): a reload returns to the pristine
+// template, and re-saving/resetting a template clears its stale edits.
+let editedTexts = {};
+
+// Capture a manual edit as the user types so it survives the next re-render.
+function handleCardEdit(idx) {
+    const bodyEl = document.getElementById(`body_${idx}`);
+    if (!bodyEl) return;
+    editedTexts[`${currentCampaign}_${idx}`] = bodyEl.innerText;
+}
+
+// Drop any pending manual edits for a campaign so that re-saving or resetting its
+// template surfaces the fresh content instead of a stale hand-edit overriding it.
+function clearCampaignEdits(campaign) {
+    Object.keys(editedTexts).forEach(k => {
+        if (k.startsWith(`${campaign}_`)) delete editedTexts[k];
+    });
+}
 
 // Build the shared app shell (sidebar + workspace + toast) once per page load.
 // Keeping this markup in one place means brand/label edits only ever touch this function.
@@ -693,8 +718,14 @@ function renderActiveCampaign() {
             return;
         }
 
+        const editKey = `${currentCampaign}_${idx}`;
         let rawText = '';
-        if (typeof step.template === 'function') {
+        if (Object.prototype.hasOwnProperty.call(editedTexts, editKey)) {
+            // A manual edit takes precedence — no placeholder substitution, so the
+            // text stays exactly as the user left it (the channel/budget/user spans
+            // below still re-highlight any occurrences that happen to be present).
+            rawText = editedTexts[editKey];
+        } else if (typeof step.template === 'function') {
             rawText = step.template(displayChannel, displayBudget);
         } else {
             let t = step.templateText || '';
@@ -797,7 +828,7 @@ function renderActiveCampaign() {
                 </div>
             </div>
             <div class="card-body-wrapper">
-                <div class="card-body" contenteditable="true" id="body_${idx}" onfocus="expandCard(${idx})">${highlightedHtml}</div>
+                <div class="card-body" contenteditable="true" id="body_${idx}" onfocus="expandCard(${idx})" oninput="handleCardEdit(${idx})">${highlightedHtml}</div>
                 <button type="button" class="card-expand-toggle" id="expand_${idx}" onclick="toggleCardExpand(${idx})">
                     ${ic('chevron')}<span>ดูสคริปต์เต็ม</span>
                 </button>
@@ -1800,12 +1831,15 @@ function saveCustomTemplate() {
     
     // Save to localStorage
     localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
-    
+
+    // The template body just changed — discard stale card edits for this key.
+    clearCampaignEdits(key);
+
     // Save to Supabase if configured
     if (supabaseClient) {
         saveToSupabase(key, customTemplates[key]);
     }
-    
+
     // Re-render sidebar and close modal
     renderSidebarNavigation();
     closeCustomTemplateModal();
@@ -1850,6 +1884,7 @@ function deleteCustomTemplate(key) {
     if (confirm(confirmMsg)) {
         const title = customTemplates[key] ? customTemplates[key].title : (templates[key] ? templates[key].title : '');
         delete customTemplates[key];
+        clearCampaignEdits(key);
         localStorage.setItem('global_custom_templates', JSON.stringify(customTemplates));
         
         // Delete from Supabase if configured
